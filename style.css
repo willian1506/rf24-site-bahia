@@ -1122,3 +1122,54 @@ button:hover {
     align-items: flex-start;
   }
 }
+
+/* ================= BOTÃO DELETAR NOTÍCIA ================= */
+.news-image {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.news-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: 0.3s;
+}
+
+.news-delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #ff0000;
+  color: #ff0000;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  z-index: 10;
+}
+
+.news-delete-btn:hover {
+  background: #ff0000;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #ff0000;
+}
+
+/* Para não-admin, o botão não aparece */
+.news-card:not(.admin-view) .news-delete-btn {
+  display: none;
+}
+
+.no-news {
+  text-align: center;
+  padding: 50px;
+  opacity: 0.7;
+  font-style: italic;
+  font-size: 16px;
+}
