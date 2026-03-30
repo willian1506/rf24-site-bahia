@@ -1214,3 +1214,36 @@ button:hover{
   background: #c62828;
   border-radius: 10px;
 }
+
+/* ================= DATA E HORA DA PARTIDA ================= */
+.match-date-time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.match-date-icon {
+  font-size: 14px;
+}
+
+.match-date-value {
+  letter-spacing: 0.5px;
+}
+
+/* Inputs de data e hora */
+input[type="date"],
+input[type="time"] {
+  cursor: pointer;
+  font-family: 'Poppins', Arial, sans-serif;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
