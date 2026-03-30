@@ -1,25 +1,3 @@
-// ================= FORÇA O LOADER A SUMIR IMEDIATAMENTE =================
-(function() {
-  // Função para esconder o loader
-  function esconderLoader() {
-    var loader = document.getElementById("loader");
-    if (loader) {
-      loader.style.display = "none";
-      console.log("✅ Loader escondido!");
-    }
-  }
-  
-  // Esconde imediatamente se o DOM já estiver carregado
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", esconderLoader);
-  } else {
-    esconderLoader();
-  }
-  
-  // Timeout de segurança (garantia)
-  setTimeout(esconderLoader, 500);
-})();
-
 // ================= FIREBASE =================
 const firebaseConfig = {
   apiKey: "AIzaSyAkNVdAudSyAnNYDCuw6fkZYCNU6fQvL08",
@@ -47,9 +25,9 @@ let currentUser = localStorage.getItem("currentUser") || null;
 
 function loginAdmin(){
   let user = prompt("👤 Usuário:");
-  if (!user || user === null) return false;
+  if (!user) return false;
   let pass = prompt("🔐 Senha:");
-  if (!pass || pass === null) return false;
+  if (!pass) return false;
   let autorizado = ADMINS.find(a => a.user === user && a.pass === pass);
   if(autorizado){
     isAdmin = true;
@@ -70,8 +48,7 @@ function logoutAdmin(){
   localStorage.removeItem("admin");
   localStorage.removeItem("currentUser");
   Toast.show("👋 Saiu do admin!");
-  var homeBtn = document.querySelector('.menu div:first-child');
-  if(homeBtn) UI.go('home', homeBtn);
+  location.reload();
 }
 
 function openAdmin(el){
@@ -82,6 +59,14 @@ function openAdmin(el){
   if(loginAdmin()) UI.go('admin', el);
 }
 
+// ================= LOADER =================
+window.onload = function() {
+  setTimeout(function() {
+    var loader = document.getElementById("loader");
+    if(loader) loader.style.display = "none";
+  }, 500);
+};
+
 // ================= TOAST =================
 const Toast = {
   show(msg) {
@@ -89,7 +74,7 @@ const Toast = {
     if(toastEl){
       toastEl.innerText = msg;
       toastEl.style.opacity = "1";
-      setTimeout(() => toastEl.style.opacity = "0", 2500);
+      setTimeout(function() { toastEl.style.opacity = "0"; }, 2500);
     }
   }
 };
@@ -97,26 +82,21 @@ const Toast = {
 // ================= UI =================
 const UI = {
   go(id, el) {
-    // Esconde todas as telas
     var screens = document.querySelectorAll(".screen");
     for(var i = 0; i < screens.length; i++) {
       screens[i].classList.remove("active");
     }
-    // Mostra a tela selecionada
     var target = document.getElementById(id);
     if(target) target.classList.add("active");
     
-    // Remove active dos menus
     var menus = document.querySelectorAll(".menu div");
     for(var i = 0; i < menus.length; i++) {
       menus[i].classList.remove("active");
     }
-    // Adiciona active no menu clicado
     if(el) el.classList.add("active");
     
-    // Recarrega logs se for admin
-    if(id === "admin" && isAdmin && Logger.render) Logger.render();
-    if(id === "scorers" && Stats.render) Stats.render();
+    if(id === "admin" && isAdmin) Logger.render();
+    if(id === "scorers") Stats.render();
   }
 };
 
@@ -128,7 +108,7 @@ const lineupRef = db.ref("lineup");
 // ================= LISTA DE JOGADORES =================
 let jogadoresLista = [];
 
-playersRef.on("value", (snap) => {
+playersRef.on("value", function(snap) {
   var dados = snap.val();
   if(dados){
     jogadoresLista = [];
@@ -224,7 +204,6 @@ const Stats = {
     }
     this.data[nome][tipo] += valor;
     this.data[nome].total = this.data[nome].gols + this.data[nome].assistencias + this.data[nome].defesas;
-    if(imagem && this.data[nome].img === "https://via.placeholder.com/60?text=Jogador") this.data[nome].img = imagem;
   },
   
   render(){
@@ -297,30 +276,49 @@ const Player = {
     document.getElementById("phy").value = "";
   },
   
-edit(id, jogador) {
-  // VERIFICAÇÃO DUPLA: só abre se for admin
-  if (!isAdmin) {
-    Toast.show("🔒 Apenas administradores podem editar jogadores!");
-    return;
-  }
-  
-  this.currentEditId = id;
-  document.getElementById("editId").value = id;
-  document.getElementById("editNome").value = jogador.nome || "";
-  document.getElementById("editImg").value = jogador.img || "";
-  document.getElementById("editOvr").value = jogador.ovr || 0;
-  document.getElementById("editPac").value = jogador.pac || "0";
-  document.getElementById("editSho").value = jogador.sho || "0";
-  document.getElementById("editPas").value = jogador.pas || "0";
-  document.getElementById("editDri").value = jogador.dri || "0";
-  document.getElementById("editDef").value = jogador.def || "0";
-  document.getElementById("editPhy").value = jogador.phy || "0";
-  
-  document.getElementById("editModal").classList.add("active");
-}
+  // Função que cria o modal dinamicamente (SÓ PARA ADMIN)
+  edit(id, jogador) {
+    if(!isAdmin){ 
+      Toast.show("🔒 Apenas administradores podem editar!"); 
+      return; 
+    }
+    
+    // Cria o modal dinamicamente
+    var modalHtml = `
+    <div id="editModal" class="modal" style="display: flex;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>✏️ Editar Jogador</h3>
+          <span class="modal-close" onclick="this.closest('#editModal').remove()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId" value="${id}">
+          <input id="editNome" placeholder="Nome" value="${jogador.nome || ''}">
+          <input id="editImg" placeholder="URL da imagem" value="${jogador.img || ''}">
+          <input id="editOvr" placeholder="OVR" type="number" value="${jogador.ovr || 0}">
+          <div class="grid-attrs">
+            <input id="editPac" placeholder="Ritmo" value="${jogador.pac || '0'}">
+            <input id="editSho" placeholder="Chute" value="${jogador.sho || '0'}">
+            <input id="editPas" placeholder="Passe" value="${jogador.pas || '0'}">
+            <input id="editDri" placeholder="Drible" value="${jogador.dri || '0'}">
+            <input id="editDef" placeholder="Defesa" value="${jogador.def || '0'}">
+            <input id="editPhy" placeholder="Físico" value="${jogador.phy || '0'}">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="this.closest('#editModal').remove()">Cancelar</button>
+          <button class="btn-save" onclick="Player.update()">💾 Salvar</button>
+          <button class="btn-delete" onclick="Player.delete()">🗑️ Excluir</button>
+        </div>
+      </div>
+    </div>`;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  },
   
   update(){
-    if(!isAdmin){ Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
+    var modal = document.getElementById("editModal");
+    if(!modal) return;
     var id = document.getElementById("editId").value;
     if(!id) return;
     playersRef.child(id).update({
@@ -336,45 +334,65 @@ edit(id, jogador) {
     }).then(function() {
       Logger.add("✏️ Editou Jogador", "Nome: " + document.getElementById("editNome").value);
       Toast.show("Jogador atualizado!");
-      Player.closeModal();
+      if(modal) modal.remove();
     });
   },
   
   delete(){
-    if(!isAdmin){ Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
+    var modal = document.getElementById("editModal");
+    if(!modal) return;
     var id = document.getElementById("editId").value;
     if(!id) return;
     if(confirm("⚠️ Excluir este jogador?")){
       playersRef.child(id).remove().then(function() {
         Logger.add("🗑️ Excluiu Jogador", "ID: " + id);
         Toast.show("Jogador excluído!");
-        Player.closeModal();
+        if(modal) modal.remove();
       });
     }
   },
   
-  closeModal(){
-    document.getElementById("editModal").classList.remove("active");
-  },
-  
-  render(data) {
-  var container = document.getElementById("playersList");
-  if (!container) return;
-  container.innerHTML = "";
-  if (!data) return;
-  
-  var jogadores = [];
-  for (var id in data) {
-    jogadores.push({ id: id, dados: data[id] });
-  }
-  jogadores.sort(function(a, b) { return b.dados.ovr - a.dados.ovr; });
-  
-  // PARA USUÁRIOS NÃO-ADMIN: APENAS VISUALIZAÇÃO (SEM CLIQUE)
-  if (!isAdmin) {
-    for (var i = 0; i < jogadores.length; i++) {
+  render(data){
+    var container = document.getElementById("playersList");
+    if(!container) return;
+    container.innerHTML = "";
+    if(!data) return;
+    
+    var jogadores = [];
+    for(var id in data) {
+      jogadores.push({id: id, dados: data[id]});
+    }
+    jogadores.sort(function(a,b){ return b.dados.ovr - a.dados.ovr; });
+    
+    // PARA NÃO-ADMIN: APENAS VISUALIZAÇÃO
+    if(!isAdmin){
+      for(var i = 0; i < jogadores.length; i++) {
+        var p = jogadores[i].dados;
+        container.innerHTML += `
+        <div class="player-card-full" style="cursor: default;">
+          <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
+          <h3>${p.nome}</h3>
+          <div class="player-ovr">OVR ${p.ovr}</div>
+          <div class="player-attrs-grid">
+            <div class="attr-item"><span>⚡</span> ${p.pac}</div>
+            <div class="attr-item"><span>🎯</span> ${p.sho}</div>
+            <div class="attr-item"><span>🎯</span> ${p.pas}</div>
+            <div class="attr-item"><span>💫</span> ${p.dri}</div>
+            <div class="attr-item"><span>🛡️</span> ${p.def}</div>
+            <div class="attr-item"><span>💪</span> ${p.phy}</div>
+          </div>
+          <div class="view-only-badge">👀 Visualização</div>
+        </div>`;
+      }
+      return;
+    }
+    
+    // PARA ADMIN: COM EDIÇÃO
+    for(var i = 0; i < jogadores.length; i++) {
       var p = jogadores[i].dados;
+      var id = jogadores[i].id;
       container.innerHTML += `
-      <div class="player-card-full" style="cursor: default;">
+      <div class="player-card-full admin-card" onclick="Player.edit('${id}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">
         <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
         <h3>${p.nome}</h3>
         <div class="player-ovr">OVR ${p.ovr}</div>
@@ -386,35 +404,12 @@ edit(id, jogador) {
           <div class="attr-item"><span>🛡️</span> ${p.def}</div>
           <div class="attr-item"><span>💪</span> ${p.phy}</div>
         </div>
-        <div class="view-only-badge">👀 Visualização</div>
+        <div class="edit-badge">✏️ Clique para editar</div>
       </div>`;
     }
-    return;
   }
-  
-  // PARA ADMIN: COM EDIÇÃO (CLIQUE FUNCIONA)
-  for (var i = 0; i < jogadores.length; i++) {
-    var p = jogadores[i].dados;
-    var id = jogadores[i].id;
-    // Escapa o JSON corretamente
-    var jogadorJSON = JSON.stringify(p).replace(/"/g, '&quot;');
-    container.innerHTML += `
-    <div class="player-card-full admin-card" onclick="Player.edit('${id}', ${jogadorJSON})">
-      <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
-      <h3>${p.nome}</h3>
-      <div class="player-ovr">OVR ${p.ovr}</div>
-      <div class="player-attrs-grid">
-        <div class="attr-item"><span>⚡</span> ${p.pac}</div>
-        <div class="attr-item"><span>🎯</span> ${p.sho}</div>
-        <div class="attr-item"><span>🎯</span> ${p.pas}</div>
-        <div class="attr-item"><span>💫</span> ${p.dri}</div>
-        <div class="attr-item"><span>🛡️</span> ${p.def}</div>
-        <div class="attr-item"><span>💪</span> ${p.phy}</div>
-      </div>
-      <div class="edit-badge">✏️ Clique para editar</div>
-    </div>`;
-  }
-}
+};
+
 // ================= MATCHES =================
 const Match = {
   formatGols(input){
@@ -657,7 +652,7 @@ const Lineup = {
       var dragging = false;
       var startX, startY, startLeft, startTop;
       
-      el.addEventListener("mousedown", function(e, id, el) {
+      el.onmousedown = function(e, id, el) {
         return function(e) {
           e.preventDefault();
           dragging = true;
@@ -666,34 +661,27 @@ const Lineup = {
           startLeft = parseFloat(el.style.left);
           startTop = parseFloat(el.style.top);
           el.style.cursor = "grabbing";
-          el.style.opacity = "0.7";
           
-          function onMouseMove(e) {
+          document.onmousemove = function(e) {
             if(!dragging) return;
             var rect = field.getBoundingClientRect();
-            var deltaX = e.clientX - startX;
-            var deltaY = e.clientY - startY;
-            var newX = startLeft + (deltaX / rect.width) * 100;
-            var newY = startTop + (deltaY / rect.height) * 100;
+            var newX = startLeft + ((e.clientX - startX) / rect.width) * 100;
+            var newY = startTop + ((e.clientY - startY) / rect.height) * 100;
             newX = Math.min(Math.max(newX, 0), 100);
             newY = Math.min(Math.max(newY, 0), 100);
             el.style.left = newX + "%";
             el.style.top = newY + "%";
             lineupRef.child(id).update({ x: newX, y: newY });
-          }
+          };
           
-          function onMouseUp() {
+          document.onmouseup = function() {
             dragging = false;
             el.style.cursor = "grab";
-            el.style.opacity = "1";
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-          }
-          
-          document.addEventListener("mousemove", onMouseMove);
-          document.addEventListener("mouseup", onMouseUp);
+            document.onmousemove = null;
+            document.onmouseup = null;
+          };
         };
-      }(null, id, el));
+      }(null, id, el);
       
       field.appendChild(el);
     }
@@ -712,16 +700,4 @@ const Logger = {
     db.ref("logs").orderByChild("timestamp").once("value", function(snap) {
       container.innerHTML = "";
       var logs = snap.val();
-      if(!logs){ container.innerHTML = '<div class="no-logs">📭 Nenhum log</div>'; return; }
-      var logsArray = [];
-      for(var id in logs) {
-        logsArray.push({id: id, log: logs[id]});
-      }
-      logsArray.sort(function(a,b){ return b.log.timestamp - a.log.timestamp; });
-      for(var i = 0; i < logsArray.length; i++) {
-        var log = logsArray[i].log;
-        var icon = "📝";
-        if(log.acao.includes("Jogador")) icon = "👤";
-        else if(log.acao.includes("Partida")) icon = "⚽";
-        else if(log.acao.includes("Reset")) icon = "⚠️";
-        container.innerHTML += '<div class="log-item"><div class="log-header"><span
+      if(!logs){ container.innerHTML = '<div class="no-logs">📭 Nenhum log</div>'; return;
