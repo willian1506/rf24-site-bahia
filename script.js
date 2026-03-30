@@ -19,13 +19,24 @@ const ADMINS = [
   {user:"Mkz", pass:"12456453", nome:"Mkz"}
 ];
 
-// ================= LOGIN =================
+// ================= LOGIN (CORRIGIDO) =================
 let isAdmin = localStorage.getItem("admin") === "true";
 let currentUser = localStorage.getItem("currentUser") || null;
 
 function loginAdmin(){
-  let user = prompt("Usuário:");
-  let pass = prompt("Senha:");
+  let user = prompt("👤 Usuário:");
+  
+  if (!user) {
+    Toast.show("Login cancelado!");
+    return false;
+  }
+  
+  let pass = prompt("🔐 Senha:");
+  
+  if (!pass) {
+    Toast.show("Login cancelado!");
+    return false;
+  }
 
   let autorizado = ADMINS.find(a => a.user === user && a.pass === pass);
 
@@ -34,9 +45,11 @@ function loginAdmin(){
     currentUser = autorizado.nome;
     localStorage.setItem("admin", "true");
     localStorage.setItem("currentUser", autorizado.nome);
-    Toast.show(`Login realizado como ${autorizado.nome}!`);
+    Toast.show(`✅ Login realizado como ${autorizado.nome}!`);
+    return true;
   } else {
-    Toast.show("Acesso negado!");
+    Toast.show("❌ Acesso negado! Usuário ou senha incorretos.");
+    return false;
   }
 }
 
@@ -45,15 +58,22 @@ function logoutAdmin(){
   currentUser = null;
   localStorage.removeItem("admin");
   localStorage.removeItem("currentUser");
-  Toast.show("Saiu da conta!");
+  Toast.show("👋 Saiu da conta!");
 }
 
 function openAdmin(el){
-  if(!isAdmin){
-    loginAdmin();
-    if(!isAdmin) return;
+  // Se já está logado, abre direto
+  if(isAdmin){
+    UI.go('admin', el);
+    return;
   }
-  UI.go('admin', el);
+  
+  // Se não está logado, tenta fazer login
+  let logou = loginAdmin();
+  if(logou){
+    UI.go('admin', el);
+  }
+  // Se não logou, não faz nada (permanece na tela atual)
 }
 
 // ================= SISTEMA DE LOGS =================
