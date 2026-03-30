@@ -148,11 +148,22 @@
   <div class="admin-box">
     <h3>Adicionar Partida</h3>
 
-    <input id="timeA" placeholder="Time A">
-    <input id="timeB" placeholder="Time B">
-    <input id="placar" placeholder="2x1">
-    <input id="gols" placeholder="Jogador:2">
-
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+      <div style="flex: 1;">
+        <label style="font-size: 12px; opacity: 0.8;">Time A</label>
+        <input id="timeA" placeholder="Nome do time A">
+        <input id="timeALogo" placeholder="URL da logo do time A">
+      </div>
+      <div style="flex: 1;">
+        <label style="font-size: 12px; opacity: 0.8;">Time B</label>
+        <input id="timeB" placeholder="Nome do time B">
+        <input id="timeBLogo" placeholder="URL da logo do time B">
+      </div>
+    </div>
+    
+    <input id="placar" placeholder="Placar (ex: 2x1)">
+    <input id="gols" placeholder="Artilheiro da partida (ex: Jogador:2)">
+    
     <button onclick="Match.add()">Adicionar Partida</button>
   </div>
 
@@ -164,7 +175,7 @@
     <button onclick="Lineup.add()">Adicionar ao campo</button>
   </div>
 
-  <button class="danger" onclick="System.reset()">RESET TOTAL</button>
+  <button class="danger" onclick="System.reset()">⚠️ RESET TOTAL</button>
 
 </section>
 
