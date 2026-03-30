@@ -1404,3 +1404,26 @@ input[type="time"]::-webkit-calendar-picker-indicator {
     grid-template-columns: 1fr;
   }
 }
+
+/* ================= IMAGEM NAS ESTATÍSTICAS ================= */
+.stats-player-img {
+  width: 55px;
+  height: 55px;
+  flex-shrink: 0;
+}
+
+.stats-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #ffd966;
+  background: #0a2030;
+}
+
+@media (max-width: 768px) {
+  .stats-player-img {
+    width: 45px;
+    height: 45px;
+  }
+}
