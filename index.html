@@ -20,6 +20,16 @@
 
 <body>
 
+  <script>
+  // Força o loader a sumir após 1 segundo (independente de outros scripts)
+  setTimeout(function() {
+    var loader = document.getElementById("loader");
+    if (loader) {
+      loader.style.display = "none";
+    }
+  }, 1000);
+</script>
+
 <!-- ================= LOADER ================= -->
 <div id="loader">
   <div class="spinner"></div>
