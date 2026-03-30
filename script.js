@@ -132,8 +132,97 @@ const Player = {
   }
 };
 
-// ================= MATCHES COMPLETO =================
+// ================= MATCHES COMPLETO COM FORMATAÇÃO AUTOMÁTICA =================
 const Match = {
+  
+  // Função para formatar gols
+  formatGols(input) {
+    if (!input.trim()) return "";
+    let lines = input.split("\n");
+    let formatted = [];
+    lines.forEach(line => {
+      line = line.trim();
+      if (line) {
+        let parts = line.split(/\s+/);
+        if (parts.length >= 2) {
+          let nome = parts[0];
+          let minuto = parts[1];
+          formatted.push(`${nome}⚽ ${minuto}'`);
+        } else if (parts.length === 1) {
+          formatted.push(`${parts[0]}⚽`);
+        }
+      }
+    });
+    return formatted.join("\n");
+  },
+  
+  // Função para formatar assistências
+  formatAssists(input) {
+    if (!input.trim()) return "";
+    let lines = input.split("\n");
+    let formatted = [];
+    lines.forEach(line => {
+      line = line.trim();
+      if (line) {
+        let parts = line.split(/\s+/);
+        if (parts.length >= 2) {
+          let nome = parts[0];
+          let minuto = parts[1];
+          formatted.push(`${nome}👟 ${minuto}'`);
+        } else if (parts.length === 1) {
+          formatted.push(`${parts[0]}👟`);
+        }
+      }
+    });
+    return formatted.join("\n");
+  },
+  
+  // Função para formatar defesas
+  formatDefesas(input) {
+    if (!input.trim()) return "";
+    let lines = input.split("\n");
+    let formatted = [];
+    lines.forEach(line => {
+      line = line.trim();
+      if (line) {
+        let parts = line.split(/\s+/);
+        if (parts.length >= 2) {
+          let nome = parts[0];
+          let quantidade = parts[1];
+          formatted.push(`${nome}🧤 ${quantidade} defesas`);
+        } else if (parts.length === 1) {
+          formatted.push(`${parts[0]}🧤`);
+        }
+      }
+    });
+    return formatted.join("\n");
+  },
+  
+  // Função para formatar cartões
+  formatCartoes(input) {
+    if (!input.trim()) return "";
+    let lines = input.split("\n");
+    let formatted = [];
+    lines.forEach(line => {
+      line = line.trim();
+      if (line) {
+        let parts = line.split(/\s+/);
+        if (parts.length >= 3) {
+          let nome = parts[0];
+          let minuto = parts[1];
+          let tipo = parts[2].toLowerCase();
+          let emoji = tipo.includes("vermelho") ? "🟥" : "🟨";
+          formatted.push(`${nome}${emoji} ${minuto}'`);
+        } else if (parts.length === 2) {
+          let nome = parts[0];
+          let minuto = parts[1];
+          formatted.push(`${nome}🟨 ${minuto}'`);
+        }
+      }
+    });
+    return formatted.join("\n");
+  },
+
   add() {
     if (!timeA.value || !timeB.value) {
       Toast.show("Preencha os nomes dos times!");
@@ -148,10 +237,10 @@ const Match = {
       ligaLogo: ligaLogo.value || null,
       tipoPartida: tipoPartida.value || "liga",
       placar: placar.value || "0x0",
-      gols: golsList.value || "",
-      assistencias: assistsList.value || "",
-      defesas: defesasList.value || "",
-      cartoes: cartoesList.value || "",
+      gols: this.formatGols(golsList.value),
+      assistencias: this.formatAssists(assistsList.value),
+      defesas: this.formatDefesas(defesasList.value),
+      cartoes: this.formatCartoes(cartoesList.value),
       mvp: mvp.value || "",
       menc1: men1.value || "",
       menc2: men2.value || "",
@@ -162,6 +251,7 @@ const Match = {
 
     matchesRef.push(match);
     
+    // Limpa os campos
     timeA.value = "";
     timeB.value = "";
     timeALogo.value = "";
@@ -178,7 +268,7 @@ const Match = {
     men3.value = "";
     obsPartida.value = "";
     
-    Toast.show("Partida salva!");
+    Toast.show("Partida salva com formatação automática!");
   },
 
   render(data) {
@@ -304,13 +394,13 @@ const Match = {
         tabela[m.timeB].empates += 1;
       }
 
-      // Artilharia
+      // Artilharia (extrai nomes dos gols formatados)
       if (m.gols) {
         let golsLines = m.gols.split("\n");
         golsLines.forEach(line => {
-          let match = line.match(/([a-zA-ZÀ-ÿ]+)/);
-          if (match) {
-            let nome = match[1];
+          let matchNome = line.match(/([a-zA-ZÀ-ÿ]+)/);
+          if (matchNome) {
+            let nome = matchNome[1];
             artilharia[nome] = (artilharia[nome] || 0) + 1;
           }
         });
@@ -321,7 +411,6 @@ const Match = {
     Object.entries(tabela)
       .sort((a,b) => b[1].pontos - a[1].pontos)
       .forEach((t, index) => {
-        let saldoGols = t[1].golsPro - t[1].golsContra;
         tableList.innerHTML += `
         <div class="table-card">
           <div class="table-position">${index + 1}º</div>
@@ -345,7 +434,6 @@ const Match = {
       });
   }
 };
-
 // ================= LINEUP =================
 const Lineup = {
   add() {
