@@ -67,11 +67,39 @@ function openAdmin(el){
   if(logou) UI.go('admin', el);
 }
 
-// ================= LOADER =================
+// ================= LOADER COM TIMEOUT DE SEGURANÇA =================
 window.onload = () => {
-  setTimeout(() => loader.style.display = "none", 1200);
+  // Força o loader a sumir após 3 segundos, mesmo se algo der errado
+  const hideLoader = () => {
+    const loader = document.getElementById("loader");
+    if (loader) {
+      loader.style.display = "none";
+    }
+  };
+  
+  // Se o Firebase carregar rápido, esconde o loader
+  setTimeout(hideLoader, 1200);
+  
+  // Timeout de segurança: se algo travar, esconde após 5 segundos
+  setTimeout(hideLoader, 5000);
 };
 
+// Verificação se o Firebase está funcionando
+try {
+  if (firebase && firebase.database) {
+    console.log("✅ Firebase carregado com sucesso!");
+  } else {
+    console.warn("⚠️ Firebase não carregou corretamente");
+    setTimeout(() => {
+      Toast.show("⚠️ Firebase com problemas, mas o site continua funcionando!");
+    }, 2000);
+  }
+} catch (e) {
+  console.error("Erro no Firebase:", e);
+  setTimeout(() => {
+    Toast.show("⚠️ Erro de conexão, recarregue a página!");
+  }, 2000);
+}
 // ================= TOAST =================
 const Toast = {
   show(msg) {
