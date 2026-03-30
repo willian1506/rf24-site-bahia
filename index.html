@@ -2,226 +2,269 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>RF24 PRO - Salvador FC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RF24 ULTIMATE PRO</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
 body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #0a2030, #091d2a);
-  color: white;
+  margin:0;
+  background: radial-gradient(circle at top,#0a2030,#050f18);
+  color:white;
+  font-family:Arial;
 }
 
-/* SPLASH */
-#splash {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #0a2030, #091d2a);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
+/* MENU */
+.fifa-menu {
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  padding:15px;
 }
 
-.splash-content {
-  text-align: center;
-}
-
-.splash-content img {
-  width: 180px;
-  margin-bottom: 20px;
-  animation: float 3s infinite ease-in-out;
-}
-
-.splash-content button {
-  background: #c62828;
-  color: white;
-  font-size: 18px;
-  padding: 10px 25px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-}
-
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-/* BOTÕES */
-.top-buttons {
-  position: fixed;
-  top: 10px;
-  right: 60px;
-}
-
-button {
-  padding: 8px;
-  border-radius: 10px;
-  cursor: pointer;
-  border: none;
-}
-
-.admin-btn { background: #c62828; color:white; }
-.logout-btn { background: #ffffff; color:#c62828; }
-
-/* HEADER */
-header {
-  text-align: center;
-  padding: 20px;
-  background: #1976d2;
-}
-
-/* CARDS */
-.container { padding: 20px; }
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 15px;
-}
-
-.card {
-  width: 180px;
-  height: 260px;
-  border-radius: 15px;
-  padding: 10px;
-  text-align: center;
-  background: linear-gradient(145deg, #1976d2, #0a2030);
-}
-
-/* LOGIN */
-.login {
-  position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:#000000dd;
-  display:flex; justify-content:center; align-items:center;
-  z-index: 200;
-}
-.login-box {
-  background:#0a2030; padding:20px; border-radius:15px; text-align:center;
-}
-
-/* ADMIN PANEL */
-.admin-panel {
-  position: fixed;
-  right: -400px;
-  top:0;
-  width:380px;
-  height:100%;
-  background:#0a2030;
-  padding:20px;
+.fifa-menu div {
+  padding:10px 20px;
+  border-radius:20px;
+  cursor:pointer;
+  background:#091d2a;
   transition:0.3s;
-  overflow:auto;
-  z-index:150;
-  border-radius:15px 0 0 15px;
 }
 
-.admin-panel.active {
-  right:0;
-  box-shadow: -5px 0 20px rgba(0,0,0,0.8);
+.fifa-menu div:hover {
+  box-shadow:0 0 20px red;
 }
 
-.admin-panel:not(.active){
-  box-shadow:none;
+.active-tab {
+  background:#c62828 !important;
+}
+
+/* SECTIONS */
+.section {
+  display:none;
+  opacity:0;
+  transition:0.5s;
+}
+
+.section.active {
+  display:block;
+  opacity:1;
+}
+
+/* CARD */
+.card {
+  width:180px;
+  border-radius:20px;
+  padding:10px;
+  margin:10px;
+  display:inline-block;
+  background:linear-gradient(160deg,#c62828,#0a2030);
+  text-align:center;
+  transition:0.3s;
+}
+
+.card:hover {
+  transform:scale(1.08);
+  box-shadow:0 0 20px red;
+}
+
+.ovr {
+  font-size:22px;
+  font-weight:bold;
+}
+
+/* INPUT */
+input {
+  padding:10px;
+  border-radius:10px;
+  border:none;
+  margin:5px;
+  background:#091d2a;
+  color:white;
+}
+
+/* CAMPO */
+.field {
+  width:90%;
+  height:400px;
+  background:green;
+  margin:auto;
+  border-radius:20px;
+  position:relative;
+}
+
+.player-pos {
+  position:absolute;
+  background:#c62828;
+  padding:5px 10px;
+  border-radius:10px;
+  font-size:12px;
 }
 </style>
 </head>
 
 <body>
 
-<!-- SPLASH -->
-<div id="splash">
-  <div class="splash-content">
-    <img src="https://images-ext-1.discordapp.net/external/p5eaHKQJ5fDQDwNOpt_FUbXYbgxc7iWP652F5kmDZKs/%3Fsize%3D2048/https/cdn.discordapp.com/icons/1444161827113140226/3d299d4be752faf8374189e5c4a05f4d.png">
-    <h1>Esporte Clube Salvador 1941</h1>
-    <button onclick="enterSite()">Entrar</button>
-  </div>
+<!-- MENU -->
+<div class="fifa-menu">
+  <div onclick="showSection('players')">Jogadores</div>
+  <div onclick="showSection('matches')">Partidas</div>
+  <div onclick="showSection('tables')">Tabela</div>
+  <div onclick="showSection('scorers')">Artilharia</div>
+  <div onclick="showSection('lineup')">Escalação</div>
 </div>
 
-<!-- BOTÕES -->
-<div class="top-buttons">
-  <button class="admin-btn" onclick="openLogin()">Admin</button>
-  <button class="logout-btn" onclick="logout()">Sair</button>
+<!-- SEÇÕES -->
+<div id="players" class="section active"></div>
+<div id="matches" class="section"></div>
+<div id="tables" class="section"></div>
+<div id="scorers" class="section"></div>
+
+<div id="lineup" class="section">
+  <h2>⚽ Escalação</h2>
+  <div class="field" id="field"></div>
+
+  <h3>Adicionar jogador na posição</h3>
+  <input id="posNome" placeholder="Nome">
+  <input id="posX" placeholder="X (0-100)">
+  <input id="posY" placeholder="Y (0-100)">
+  <button onclick="addPosition()">Adicionar</button>
 </div>
 
-<header>
-  <h1 id="teamName">Esporte Clube Salvador</h1>
-</header>
+<hr>
 
-<div class="container">
-<h2>👥 Jogadores</h2>
-<div class="cards" id="players"></div>
-</div>
+<h3>Adicionar Jogador</h3>
+<input id="nome" placeholder="Nome">
+<input id="ovr" placeholder="OVR">
+<input id="pac" placeholder="PAC">
+<input id="sho" placeholder="SHO">
+<input id="pas" placeholder="PAS">
+<input id="dri" placeholder="DRI">
+<input id="def" placeholder="DEF">
+<input id="phy" placeholder="PHY">
+<button onclick="addPlayer()">Salvar</button>
 
-<!-- LOGIN -->
-<div class="login" id="loginBox" style="display:none;">
-  <div class="login-box">
-    <h3>Login Admin</h3>
-    <input id="user" placeholder="Usuário">
-    <input id="pass" type="password" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
-  </div>
-</div>
-
-<!-- ADMIN -->
-<div class="admin-panel" id="adminPanel">
-<h3>Painel PRO</h3>
-<input id="nomeJogador" placeholder="Nome">
-<input id="ovr" placeholder="Overall">
-<button onclick="addPlayer()">Adicionar</button>
-</div>
+<h3>Adicionar Partida</h3>
+<input id="liga" placeholder="Liga">
+<input id="timeA" placeholder="Time A">
+<input id="timeB" placeholder="Time B">
+<input id="placar" placeholder="2x1">
+<input id="gols" placeholder="Nome:2">
+<button onclick="addMatch()">Salvar</button>
 
 <script>
-function enterSite(){
-  document.getElementById("splash").style.display="none";
+// CONFIG
+const firebaseConfig = {
+  apiKey:"SUA_KEY",
+  authDomain:"SEU_APP.firebaseapp.com",
+  databaseURL:"https://SEU_APP-default-rtdb.firebaseio.com",
+  projectId:"SEU_APP"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// MENU
+function showSection(id){
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-const ADMIN_USER="admin";
-const ADMIN_PASS="123";
-
-function openLogin(){
-  document.getElementById("loginBox").style.display="flex";
+// ADD PLAYER
+function addPlayer(){
+  db.ref("players/"+Date.now()).set({
+    nome:nome.value,
+    ovr:ovr.value,
+    pac:pac.value,
+    sho:sho.value,
+    pas:pas.value,
+    dri:dri.value,
+    def:def.value,
+    phy:phy.value
+  });
 }
 
-function login(){
-  if(user.value===ADMIN_USER && pass.value===ADMIN_PASS){
-    loginBox.style.display="none";
-    adminPanel.classList.add("active");
-  } else alert("Erro!");
+// ADD MATCH
+function addMatch(){
+  db.ref("matches/"+Date.now()).set({
+    liga:liga.value,
+    timeA:timeA.value,
+    timeB:timeB.value,
+    placar:placar.value,
+    gols:gols.value
+  });
 }
 
-function logout(){
-  adminPanel.classList.remove("active");
+// ESCALAÇÃO
+function addPosition(){
+  db.ref("lineup/"+Date.now()).set({
+    nome:posNome.value,
+    x:posX.value,
+    y:posY.value
+  });
 }
 
-let data = {players:[]};
-
-function render(){
+// RENDER
+db.ref("players").on("value",snap=>{
   players.innerHTML="";
-  data.players.forEach(p=>{
+  Object.values(snap.val()||{}).forEach(p=>{
     players.innerHTML+=`
       <div class="card">
-        <h3>${p.nome}</h3>
-        <img src="https://i.imgur.com/og7m8DI.png" width="100">
-        <p>OVR: ${p.ovr}</p>
+        <div class="ovr">${p.ovr}</div>
+        <img src="https://i.imgur.com/og7m8DI.png" width="80">
+        <h4>${p.nome}</h4>
+        <div>${p.pac} ${p.sho} ${p.pas}</div>
       </div>
     `;
   });
-}
+});
 
-function addPlayer(){
-  data.players.push({
-    nome:nomeJogador.value,
-    ovr:ovr.value
+// PARTIDAS + TABELA + ARTILHARIA
+db.ref("matches").on("value",snap=>{
+  matches.innerHTML="";
+  tables.innerHTML="";
+  scorers.innerHTML="";
+
+  let tabela={}, artilharia={};
+
+  Object.values(snap.val()||{}).forEach(m=>{
+    matches.innerHTML+=`<div class="card">${m.timeA} ${m.placar} ${m.timeB}</div>`;
+
+    let [g1,g2]=m.placar.split("x").map(Number);
+
+    if(!tabela[m.timeA]) tabela[m.timeA]=0;
+    if(!tabela[m.timeB]) tabela[m.timeB]=0;
+
+    if(g1>g2) tabela[m.timeA]+=3;
+    else if(g2>g1) tabela[m.timeB]+=3;
+    else {tabela[m.timeA]+=1; tabela[m.timeB]+=1;}
+
+    if(m.gols){
+      let [n,g]=m.gols.split(":");
+      artilharia[n]=(artilharia[n]||0)+parseInt(g);
+    }
   });
-  render();
-}
 
-render();
+  Object.entries(tabela).sort((a,b)=>b[1]-a[1]).forEach((t,i)=>{
+    tables.innerHTML+=`<div class="card">${i+1}º ${t[0]} - ${t[1]}</div>`;
+  });
+
+  Object.entries(artilharia).sort((a,b)=>b[1]-a[1]).forEach((a,i)=>{
+    scorers.innerHTML+=`<div class="card">${i+1}º ${a[0]} ⚽ ${a[1]}</div>`;
+  });
+});
+
+// ESCALAÇÃO RENDER
+db.ref("lineup").on("value",snap=>{
+  field.innerHTML="";
+  Object.values(snap.val()||{}).forEach(p=>{
+    field.innerHTML+=`
+      <div class="player-pos" style="left:${p.x}%; top:${p.y}%">
+        ${p.nome}
+      </div>
+    `;
+  });
+});
 </script>
 
 </body>
