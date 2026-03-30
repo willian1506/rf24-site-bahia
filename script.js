@@ -12,6 +12,23 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// ================= LOGIN ADMIN =================
+const ADMIN_USER = "bahiaADM";
+const ADMIN_PASS = "williangoat123";
+let isAdmin = false;
+
+function loginAdmin(){
+  let user = prompt("Usuário:");
+  let pass = prompt("Senha:");
+
+  if(user === ADMIN_USER && pass === ADMIN_PASS){
+    isAdmin = true;
+    Toast.show("Login realizado!");
+  } else {
+    Toast.show("Acesso negado!");
+  }
+}
+
 // ================= LOADER =================
 window.onload = () => {
   setTimeout(() => loader.style.display = "none", 1200);
