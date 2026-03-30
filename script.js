@@ -294,7 +294,7 @@ const Stats = {
   }
 };
 
-// ================= PLAYERS (com edição) =================
+// ================= PLAYERS (com edição e exclusão - APENAS ADMIN) =================
 const Player = {
   currentEditId: null,
   
@@ -326,6 +326,7 @@ const Player = {
   },
   
   edit(id, jogador) {
+    // VERIFICAÇÃO DUPLA: só abre se for admin
     if (!isAdmin) {
       Toast.show("🔒 Apenas administradores podem editar jogadores!");
       return;
@@ -413,14 +414,13 @@ const Player = {
 
   render(data) {
     playersList.innerHTML = "";
-    Object.values(data || {})
-      .sort((a,b)=>b.ovr - a.ovr)
-      .forEach((p, index) => {
-        const jogadorId = Object.keys(data)[Object.values(data).indexOf(p)];
-        const editBadge = isAdmin ? '<div class="edit-badge">✏️ Clique para editar</div>' : '';
-        
+    if (!data) return;
+    
+    // Para usuários não-admin, mostra apenas visualização (sem clique)
+    if (!isAdmin) {
+      Object.values(data).sort((a,b)=>b.ovr - a.ovr).forEach(p => {
         playersList.innerHTML += `
-        <div class="player-card-full" ${isAdmin ? `onclick="Player.edit('${jogadorId}', ${JSON.stringify(p).replace(/"/g, '&quot;')})"` : ''}>
+        <div class="player-card-full">
           <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
           <h3>${p.nome}</h3>
           <div class="player-ovr">OVR ${p.ovr}</div>
@@ -432,9 +432,30 @@ const Player = {
             <div class="attr-item"><span>🛡️</span> Defesa: ${p.def}</div>
             <div class="attr-item"><span>💪</span> Físico: ${p.phy}</div>
           </div>
-          ${editBadge}
+          <div class="view-only-badge">👀 Visualização</div>
         </div>`;
       });
+      return;
+    }
+    
+    // Para administradores, mostra com opção de edição
+    Object.entries(data).sort((a,b) => b[1].ovr - a[1].ovr).forEach(([id, p]) => {
+      playersList.innerHTML += `
+      <div class="player-card-full admin-card" onclick="Player.edit('${id}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">
+        <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
+        <h3>${p.nome}</h3>
+        <div class="player-ovr">OVR ${p.ovr}</div>
+        <div class="player-attrs-grid">
+          <div class="attr-item"><span>⚡</span> Ritmo: ${p.pac}</div>
+          <div class="attr-item"><span>🎯</span> Chute: ${p.sho}</div>
+          <div class="attr-item"><span>🎯</span> Passe: ${p.pas}</div>
+          <div class="attr-item"><span>💫</span> Drible: ${p.dri}</div>
+          <div class="attr-item"><span>🛡️</span> Defesa: ${p.def}</div>
+          <div class="attr-item"><span>💪</span> Físico: ${p.phy}</div>
+        </div>
+        <div class="edit-badge">✏️ Clique para editar</div>
+      </div>`;
+    });
   }
 };
 
