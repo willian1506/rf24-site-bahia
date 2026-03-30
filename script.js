@@ -454,4 +454,148 @@ const Lineup = {
   add() {
     if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
     let pNome = document.getElementById("pNome");
-    if (!pNome.value.trim
+    if (!pNome.value.trim()) { Toast.show("Digite o nome!"); return; }
+    let jogador = encontrarJogador(pNome.value);
+    lineupRef.push({ nome: pNome.value, x: 50, y: 50, img: jogador?.img || null }).then(() => {
+      Logger.add("📋 Adicionou à Escalação", "Jogador: " + pNome.value);
+      Toast.show("Jogador adicionado!");
+    });
+    pNome.value = "";
+  },
+  render(data) {
+    let field = document.getElementById("field");
+    if (!field) return;
+    field.innerHTML = "";
+    if (!data) return;
+    
+    for (let id in data) {
+      let p = data[id];
+      let el = document.createElement("div");
+      el.className = "player";
+      el.innerHTML = p.img ? `<img src="${p.img}" class="player-img" onerror="this.style.display='none'"><span>${p.nome}</span>` : `<span>${p.nome}</span>`;
+      el.style.left = p.x + "%";
+      el.style.top = p.y + "%";
+      
+      let dragging = false;
+      let startX, startY, startLeft, startTop;
+      
+      el.onmousedown = (function(id, el) {
+        return function(e) {
+          e.preventDefault();
+          dragging = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          startLeft = parseFloat(el.style.left);
+          startTop = parseFloat(el.style.top);
+          el.style.cursor = "grabbing";
+          
+          document.onmousemove = function(e) {
+            if (!dragging) return;
+            let rect = field.getBoundingClientRect();
+            let newX = startLeft + ((e.clientX - startX) / rect.width) * 100;
+            let newY = startTop + ((e.clientY - startY) / rect.height) * 100;
+            newX = Math.min(Math.max(newX, 0), 100);
+            newY = Math.min(Math.max(newY, 0), 100);
+            el.style.left = newX + "%";
+            el.style.top = newY + "%";
+            lineupRef.child(id).update({ x: newX, y: newY });
+          };
+          
+          document.onmouseup = function() {
+            dragging = false;
+            el.style.cursor = "grab";
+            document.onmousemove = null;
+            document.onmouseup = null;
+          };
+        };
+      })(id, el);
+      
+      field.appendChild(el);
+    }
+  }
+};
+
+// ================= LOGGER =================
+const Logger = {
+  add(action, details) {
+    if (!currentUser) return;
+    db.ref("logs").push({
+      usuario: currentUser,
+      acao: action,
+      detalhes: details,
+      data: new Date().toLocaleString(),
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+  },
+  render() {
+    let container = document.getElementById("logsList");
+    if (!container) return;
+    db.ref("logs").orderByChild("timestamp").once("value", snap => {
+      container.innerHTML = "";
+      let logs = snap.val();
+      if (!logs) {
+        container.innerHTML = '<div class="no-logs">📭 Nenhum log</div>';
+        return;
+      }
+      let logsArray = Object.entries(logs).sort((a, b) => b[1].timestamp - a[1].timestamp);
+      for (let i = 0; i < logsArray.length; i++) {
+        let log = logsArray[i][1];
+        let icon = "📝";
+        if (log.acao.includes("Jogador")) icon = "👤";
+        else if (log.acao.includes("Partida")) icon = "⚽";
+        else if (log.acao.includes("Reset")) icon = "⚠️";
+        container.innerHTML += `
+        <div class="log-item">
+          <div class="log-header">
+            <span class="log-icon">${icon}</span>
+            <span class="log-usuario">${log.usuario}</span>
+            <span class="log-data">📅 ${log.data}</span>
+          </div>
+          <div class="log-acao">${log.acao}</div>
+          <div class="log-detalhes">${log.detalhes}</div>
+        </div>`;
+      }
+      let logCount = document.getElementById("logCount");
+      if (logCount) logCount.textContent = `${logsArray.length} logs`;
+    });
+  }
+};
+
+// ================= SYSTEM =================
+const System = {
+  reset() {
+    if (!isAdmin) { Toast.show("Sem permissão!"); return; }
+    if (confirm("⚠️ Resetar todos os dados? (LOGS serão mantidos)")) {
+      playersRef.set(null);
+      matchesRef.set(null);
+      lineupRef.set(null);
+      Logger.add("⚠️ Reset Total", "Dados apagados");
+      Toast.show("Dados resetados!");
+      setTimeout(() => location.reload(), 1500);
+    }
+  }
+};
+
+// ================= LISTENERS =================
+playersRef.on("value", snap => Player.render(snap.val()));
+matchesRef.on("value", snap => {
+  Match.render(snap.val());
+  Stats.processMatches(snap.val());
+});
+lineupRef.on("value", snap => Lineup.render(snap.val()));
+
+// ================= SEARCH =================
+document.getElementById("searchPlayer")?.addEventListener("input", e => {
+  let term = e.target.value.toLowerCase();
+  document.querySelectorAll("#playersList .player-card-full").forEach(card => {
+    let nome = card.querySelector("h3")?.innerText.toLowerCase() || "";
+    card.style.display = nome.includes(term) ? "block" : "none";
+  });
+});
+document.getElementById("searchStats")?.addEventListener("input", e => {
+  let term = e.target.value.toLowerCase();
+  document.querySelectorAll("#statsList .stats-card").forEach(card => {
+    let nome = card.querySelector(".stats-player-name")?.innerText.toLowerCase() || "";
+    card.style.display = nome.includes(term) ? "flex" : "none";
+  });
+});
