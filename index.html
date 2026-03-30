@@ -38,9 +38,11 @@
   <div onclick="UI.go('tables',this)">🏆 Tabela</div>
   <div onclick="UI.go('scorers',this)">⚽ Estatísticas</div>
   <div onclick="UI.go('lineup',this)">📋 Escalação</div>
+  <div onclick="UI.go('news',this)">📰 Notícias</div>
   <div onclick="openAdmin(this)">⚙️ Admin</div>
 </nav>
 
+<!-- ================= HOME ================= -->
 <section id="home" class="screen active">
   <div class="hero">
     <div class="club-logo-container">
@@ -60,6 +62,7 @@
   </div>
 </section>
 
+<!-- ================= JOGADORES ================= -->
 <section id="players" class="screen">
   <h2>👥 Jogadores</h2>
   <div class="top-bar">
@@ -68,16 +71,19 @@
   <div id="playersList" class="grid"></div>
 </section>
 
+<!-- ================= PARTIDAS ================= -->
 <section id="matches" class="screen">
   <h2>📊 Partidas</h2>
   <div id="matchesList" class="matches-container"></div>
 </section>
 
+<!-- ================= TABELA ================= -->
 <section id="tables" class="screen">
   <h2>🏆 Tabela de Classificação</h2>
   <div id="tableList" class="list"></div>
 </section>
 
+<!-- ================= ESTATÍSTICAS ================= -->
 <section id="scorers" class="screen">
   <h2>📊 Estatísticas dos Jogadores</h2>
   <div class="top-bar">
@@ -86,15 +92,24 @@
   <div id="statsList" class="stats-grid"></div>
 </section>
 
+<!-- ================= ESCALAÇÃO ================= -->
 <section id="lineup" class="screen">
   <h2>📋 Escalação Tática</h2>
   <div class="formation-info">⚽ Arraste os jogadores livremente no campo ⚽</div>
   <div class="field" id="field"></div>
 </section>
 
+<!-- ================= NOTÍCIAS ================= -->
+<section id="news" class="screen">
+  <h2>📰 Últimas Notícias</h2>
+  <div id="newsList" class="news-grid"></div>
+</section>
+
+<!-- ================= ADMIN ================= -->
 <section id="admin" class="screen">
   <h2>⚙️ Painel Administrativo</h2>
 
+  <!-- JOGADOR -->
   <div class="admin-box">
     <h3>➕ Adicionar Jogador</h3>
     <input id="nome" placeholder="Nome do jogador">
@@ -111,6 +126,7 @@
     <button onclick="Player.add()">✅ Adicionar Jogador</button>
   </div>
 
+  <!-- PARTIDA -->
   <div class="admin-box">
     <h3>⚽ Adicionar Partida</h3>
     <div style="margin-bottom: 10px;">
@@ -140,12 +156,23 @@
     <button onclick="Match.add()">✅ Adicionar Partida</button>
   </div>
 
+  <!-- NOTÍCIAS (APENAS ADMIN) -->
+  <div class="admin-box">
+    <h3>📰 Adicionar Notícia</h3>
+    <input id="newsTitle" placeholder="Título da notícia">
+    <input id="newsImage" placeholder="URL da imagem">
+    <textarea id="newsDesc" placeholder="Descrição/Conteúdo da notícia" rows="4" style="width:100%;padding:10px;margin:5px 0;border-radius:10px;background:#091d2a;color:white;"></textarea>
+    <button onclick="News.add()">✅ Publicar Notícia</button>
+  </div>
+
+  <!-- ESCALAÇÃO -->
   <div class="admin-box">
     <h3>📋 Adicionar à Escalação</h3>
     <input id="pNome" placeholder="Nome do jogador">
     <button onclick="Lineup.add()">➕ Adicionar ao campo</button>
   </div>
 
+  <!-- LOGS -->
   <div class="admin-box logs-box">
     <h3>📜 HISTÓRICO DE AÇÕES (LOGS)</h3>
     <div class="logs-header"><span id="logCount">Carregando...</span><small>⚠️ Logs permanentes</small></div>
