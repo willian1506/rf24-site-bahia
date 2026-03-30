@@ -2,52 +2,86 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>RF24 PRO - Bahia FC Style</title>
+<title>RF24 PRO - Salvador FC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-/* --------------------- CORES E FONTES --------------------- */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: linear-gradient(135deg, #0a2030, #091d2a); /* azul escuro */
+  background: linear-gradient(135deg, #0a2030, #091d2a);
   color: white;
 }
 
-/* HEADER */
+/* ---------------- SPLASH ---------------- */
+#splash {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0a2030, #091d2a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.splash-content {
+  text-align: center;
+}
+
+.splash-content img {
+  width: 180px;
+  margin-bottom: 20px;
+  animation: float 3s infinite ease-in-out;
+}
+
+.splash-content h1 {
+  margin-bottom: 20px;
+}
+
+.splash-content button {
+  background: #c62828;
+  color: white;
+  font-size: 18px;
+  padding: 10px 25px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ---------------- HEADER ---------------- */
 header {
   text-align: center;
   padding: 20px;
-  background: #1976d2; /* azul claro */
-  box-shadow: 0 0 10px #000;
+  background: #1976d2;
 }
 
-h1 { color: #ffffff; }
-
-/* --------------------- BOTÕES --------------------- */
+/* ---------------- BOTÕES ---------------- */
 .top-buttons {
   position: fixed;
   top: 10px;
   right: 10px;
-  z-index: 100;
 }
 
 button {
   padding: 8px;
-  border: none;
   border-radius: 10px;
-  margin-left: 5px;
   cursor: pointer;
-  transition: 0.3s;
+  border: none;
 }
 
 .admin-btn { background: #c62828; color:white; }
 .logout-btn { background: #ffffff; color:#c62828; }
 
-/* --------------------- CONTAINER --------------------- */
+/* ---------------- CONTAINER ---------------- */
 .container { padding: 20px; }
 
-/* --------------------- CARDS ESTILO FIFA --------------------- */
+/* ---------------- CARDS ---------------- */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -59,73 +93,11 @@ button {
   height: 260px;
   border-radius: 15px;
   padding: 10px;
-  color: white;
-  position: relative;
-  overflow: hidden;
-  font-family: Arial;
   text-align: center;
   background: linear-gradient(145deg, #1976d2, #0a2030);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s ease;
-  animation: cardEntry 0.8s cubic-bezier(0.22,1,0.36,1);
 }
 
-.card:hover {
-  transform: scale(1.05) rotateX(3deg) rotateY(-3deg);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(255,0,0,0.3);
-}
-
-.card::after {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
-  transform: rotate(25deg);
-  opacity: 0;
-  transition: 0.5s;
-}
-
-.card:hover::after { opacity: 1; left: 100%; }
-
-.card img {
-  width: 80%;
-  margin-top: 40px;
-  border-radius: 10px;
-  transition: transform 0.6s ease;
-}
-
-.card:hover img { transform: scale(1.1); }
-
-.ovr {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 28px;
-  font-weight: bold;
-  color: #ffffff;
-}
-
-.pos { position: absolute; top: 40px; left: 12px; font-size: 14px; }
-.nome { font-weight: bold; margin-top: 5px; }
-.stats { font-size: 11px; margin-top: 5px; text-align: left; padding: 0 10px; }
-.stats div { display: flex; justify-content: space-between; }
-
-/* RARIDADE */
-.elite { background: linear-gradient(145deg, #c62828, #8f0000); }
-.top { background: linear-gradient(145deg, #1976d2, #0a2030); }
-.mid { background: linear-gradient(145deg, #555, #222); }
-
-/* ANIMAÇÃO DE ENTRADA */
-@keyframes cardEntry {
-  0% { opacity:0; transform: scale(0.7) rotateY(40deg); }
-  60% { opacity:1; transform: scale(1.05) rotateY(-10deg); }
-  100% { transform: scale(1) rotateY(0); }
-}
-
-/* --------------------- LOGIN --------------------- */
+/* ---------------- LOGIN ---------------- */
 .login {
   position: fixed;
   top:0; left:0;
@@ -137,90 +109,61 @@ button {
 .login-box {
   background:#0a2030; padding:20px; border-radius:15px; text-align:center;
 }
-input, textarea {
-  width:100%;
-  margin:5px 0;
-  padding:10px;
-  border:1px solid #1976d2;
-  border-radius:10px;
-  background-color: #091d2a;
-  color:white;
-  outline:none;
-  transition:0.3s;
-}
-input:focus, textarea:focus {
-  border-color:#c62828;
-  box-shadow:0 0 8px #c6282855;
-}
 
-/* --------------------- ADMIN PANEL --------------------- */
+/* ---------------- ADMIN PANEL ---------------- */
 .admin-panel {
   position: fixed;
-  right:-380px; top:0;
-  width:380px; height:100%;
-  background:#0a2030; padding:20px;
-  transition:0.3s; overflow:auto;
+  right: -400px; /* CORRIGIDO */
+  top:0;
+  width:380px;
+  height:100%;
+  background:#0a2030;
+  padding:20px;
+  transition:0.3s;
+  overflow:auto;
   z-index:150;
   border-radius:15px 0 0 15px;
 }
-.admin-panel.active { right:0; }
-.admin-panel button {
-  background-color: #c62828;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 8px;
-  margin-top: 5px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-.admin-panel button:hover { background-color: #1976d2; }
 
-/* --------------------- CARDS PARTIDAS --------------------- */
-.match-card {
-  background-color: #091d2a;
-  border-radius: 12px;
-  padding: 15px;
-  margin-bottom: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+.admin-panel.active {
+  right:0;
+  box-shadow: -5px 0 20px rgba(0,0,0,0.8);
 }
 
-.player-match-card {
-  background-color: #0a2030;
-  border-radius: 10px;
-  padding: 10px;
-  margin-top: 5px;
+.admin-panel:not(.active){
+  box-shadow:none;
 }
 </style>
 </head>
 
 <body>
 
-<!-- --------------------- TOP BOTÕES --------------------- -->
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-content">
+    <img src="https://images-ext-1.discordapp.net/external/p5eaHKQJ5fDQDwNOpt_FUbXYbgxc7iWP652F5kmDZKs/%3Fsize%3D2048/https/cdn.discordapp.com/icons/1444161827113140226/3d299d4be752faf8374189e5c4a05f4d.png?format=webp&quality=lossless">
+    <h1>Esporte Clube Salvador 1941</h1>
+    <button onclick="enterSite()">Entrar</button>
+  </div>
+</div>
+
+<!-- BOTÕES -->
 <div class="top-buttons">
   <button class="admin-btn" onclick="openLogin()">Admin</button>
   <button class="logout-btn" onclick="logout()">Sair</button>
 </div>
 
-<!-- --------------------- HEADER --------------------- -->
+<!-- HEADER -->
 <header>
-  <h1 id="teamName">Esporte Clube Bahia</h1>
+  <h1 id="teamName">Esporte Clube Salvador</h1>
 </header>
 
-<!-- --------------------- CONTAINER --------------------- -->
 <div class="container">
 <h2>👥 Jogadores</h2>
 <div class="cards" id="players"></div>
-
-<h2>📊 Estatísticas</h2>
-<div class="cards">
-  <div class="card"><h3>⚽ Gols</h3><p id="gols"></p></div>
-  <div class="card"><h3>🎯 Assistências</h3><p id="assist"></p></div>
-  <div class="card"><h3>🧤 Defesas</h3><p id="defesas"></p></div>
-</div>
 </div>
 
-<!-- --------------------- LOGIN --------------------- -->
+<!-- LOGIN -->
 <div class="login" id="loginBox" style="display:none;">
   <div class="login-box">
     <h3>Login Admin</h3>
@@ -230,157 +173,65 @@ input:focus, textarea:focus {
   </div>
 </div>
 
-<!-- --------------------- ADMIN PANEL --------------------- -->
+<!-- ADMIN -->
 <div class="admin-panel" id="adminPanel">
-<h3>Painel PRO - Bahia FC</h3>
-
-<h4>Informações do Clube</h4>
-<input id="clubLogo" type="text" placeholder="URL da Logo">
-<input id="clubName" placeholder="Nome do Clube">
-<textarea id="clubHistory" placeholder="História do clube" rows="5"></textarea>
-
-<h4>Adicionar Jogador / Estatísticas</h4>
+<h3>Painel PRO</h3>
 <input id="nomeJogador" placeholder="Nome">
-<input id="imgJogador" placeholder="URL da imagem">
-<input id="posJogador" placeholder="Posição">
-<input id="ovr" placeholder="Overall (ex:90)">
-<input id="pac" placeholder="PAC">
-<input id="sho" placeholder="SHO">
-<input id="pas" placeholder="PAS">
-<input id="dri" placeholder="DRI">
-<input id="def" placeholder="DEF">
-<input id="phy" placeholder="PHY">
-
-<h4>Estatísticas Gerais</h4>
-<input id="golsInput" placeholder="Artilheiro">
-<input id="assistInput" placeholder="Assistências">
-<input id="defesasInput" placeholder="Defesas">
-
-<h4>Resultados das Partidas</h4>
-<div id="matches">
-  <!-- Exemplo de partida:
-  <div class="match-card">
-    <h5>Bahia 2 x 1 Time B</h5>
-    <div class="player-match-card">Jogador - Nota: 8.5</div>
-  </div>
-  -->
-</div>
-
-<button onclick="addPlayer()">Adicionar Jogador</button>
-<button onclick="saveData()">Salvar Tudo</button>
+<input id="imgJogador" placeholder="Imagem">
+<input id="ovr" placeholder="Overall">
+<button onclick="addPlayer()">Adicionar</button>
 </div>
 
 <script>
-// --------------------- LOGIN ---------------------
-const ADMIN_USER = "willian1506";
-const ADMIN_PASS = "84028555";
-let logged = false;
+// SPLASH
+function enterSite(){
+  document.getElementById("splash").style.display="none";
+}
 
-function openLogin(){ document.getElementById("loginBox").style.display="flex"; }
+// LOGIN
+const ADMIN_USER="admin";
+const ADMIN_PASS="123";
+
+function openLogin(){
+  document.getElementById("loginBox").style.display="flex";
+}
+
 function login(){
-  let u = document.getElementById("user").value;
-  let p = document.getElementById("pass").value;
+  let u=user.value;
+  let p=pass.value;
+
   if(u===ADMIN_USER && p===ADMIN_PASS){
-    logged = true;
-    document.getElementById("loginBox").style.display="none";
-    document.getElementById("adminPanel").classList.add("active");
-  } else alert("Senha ou usuário errado!");
+    loginBox.style.display="none";
+    adminPanel.classList.add("active");
+  } else alert("Erro!");
 }
+
 function logout(){
-  logged=false;
-  document.getElementById("adminPanel").classList.remove("active");
+  adminPanel.classList.remove("active");
 }
 
-// --------------------- DADOS ---------------------
-let data = JSON.parse(localStorage.getItem("rf24")) || {
-  team:"Esporte Clube Bahia",
-  clubLogo:"",
-  clubHistory:"",
-  players:[],
-  stats:{gols:"", assist:"", defesas:""},
-  matches:[]
-};
+// DADOS
+let data = {players:[]};
 
-// --------------------- RENDER ---------------------
 function render(){
-  document.getElementById("teamName").innerText = data.team;
-
-  let players = document.getElementById("players");
-  players.innerHTML = "";
-  data.players.sort((a,b)=>b.ovr - a.ovr);
-
-  data.players.forEach((p,i)=>{
-    let classe = "mid";
-    if(p.ovr>=90) classe="elite";
-    else if(p.ovr>=80) classe="top";
-
-    players.innerHTML += `
-      <div class="card ${classe}">
-        <div class="ovr">${p.ovr||0}</div>
-        <div class="pos">${p.pos||""}</div>
-        <img src="${p.img||''}">
-        <div class="nome">${p.nome||''}</div>
-        <div class="stats">
-          <div><span>PAC</span><span>${p.pac||0}</span></div>
-          <div><span>SHO</span><span>${p.sho||0}</span></div>
-          <div><span>PAS</span><span>${p.pas||0}</span></div>
-          <div><span>DRI</span><span>${p.dri||0}</span></div>
-          <div><span>DEF</span><span>${p.def||0}</span></div>
-          <div><span>PHY</span><span>${p.phy||0}</span></div>
-        </div>
+  players.innerHTML="";
+  data.players.forEach(p=>{
+    players.innerHTML+=`
+      <div class="card">
+        <h3>${p.nome}</h3>
+        <img src="${p.img}" width="100">
+        <p>OVR: ${p.ovr}</p>
       </div>
     `;
   });
-
-  document.getElementById("gols").innerText = data.stats.gols;
-  document.getElementById("assist").innerText = data.stats.assist;
-  document.getElementById("defesas").innerText = data.stats.defesas;
-
-  // Render partidas
-  let matchesDiv = document.getElementById("matches");
-  matchesDiv.innerHTML="";
-  data.matches.forEach(m=>{
-    let card = document.createElement("div");
-    card.className="match-card";
-    card.innerHTML=`<h5>${m.result}</h5>`;
-    m.players.forEach(p=>{
-      let pc = document.createElement("div");
-      pc.className="player-match-card";
-      pc.innerText=`${p.nome} - Nota: ${p.nota}`;
-      card.appendChild(pc);
-    });
-    matchesDiv.appendChild(card);
-  });
 }
 
-// --------------------- ADD PLAYER ---------------------
 function addPlayer(){
-  if(!logged) return alert("Faça login!");
   data.players.push({
-    nome: nomeJogador.value,
-    img: imgJogador.value,
-    pos: posJogador.value,
-    ovr: parseInt(ovr.value)||0,
-    pac: parseInt(pac.value)||0,
-    sho: parseInt(sho.value)||0,
-    pas: parseInt(pas.value)||0,
-    dri: parseInt(dri.value)||0,
-    def: parseInt(def.value)||0,
-    phy: parseInt(phy.value)||0
+    nome:nomeJogador.value,
+    img:imgJogador.value,
+    ovr:ovr.value
   });
-  saveData();
-}
-
-// --------------------- SAVE ---------------------
-function saveData(){
-  data.team = clubName.value || data.team;
-  data.clubLogo = clubLogo.value;
-  data.clubHistory = clubHistory.value;
-  data.stats.gols = golsInput.value;
-  data.stats.assist = assistInput.value;
-  data.stats.defesas = defesasInput.value;
-
-  localStorage.setItem("rf24", JSON.stringify(data));
   render();
 }
 
