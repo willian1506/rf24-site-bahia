@@ -14,22 +14,27 @@ const db = firebase.database();
 
 // ================= ADMINS =================
 const ADMINS = [
-  {user:"willian1506", pass:"willian123"},
-  {user:"stormy", pass:"183524"},
-  {user:"Mkz", pass:"12456453"}
+  {user:"willian1506", pass:"willian123", nome:"Willian"},
+  {user:"stormy", pass:"183524", nome:"Stormy"},
+  {user:"Mkz", pass:"12456453", nome:"Mkz"}
 ];
 
 // ================= LOGIN =================
 let isAdmin = localStorage.getItem("admin") === "true";
+let currentUser = localStorage.getItem("currentUser") || null;
 
 function loginAdmin(){
   let user = prompt("Usuário:");
   let pass = prompt("Senha:");
+
   let autorizado = ADMINS.find(a => a.user === user && a.pass === pass);
+
   if(autorizado){
     isAdmin = true;
+    currentUser = autorizado.nome;
     localStorage.setItem("admin", "true");
-    Toast.show("Login salvo!");
+    localStorage.setItem("currentUser", autorizado.nome);
+    Toast.show(`Login realizado como ${autorizado.nome}!`);
   } else {
     Toast.show("Acesso negado!");
   }
@@ -37,7 +42,9 @@ function loginAdmin(){
 
 function logoutAdmin(){
   isAdmin = false;
+  currentUser = null;
   localStorage.removeItem("admin");
+  localStorage.removeItem("currentUser");
   Toast.show("Saiu da conta!");
 }
 
@@ -49,9 +56,83 @@ function openAdmin(el){
   UI.go('admin', el);
 }
 
+// ================= SISTEMA DE LOGS =================
+const Logger = {
+  // Função para adicionar log
+  add(action, details) {
+    if (!currentUser) {
+      console.warn("Nenhum usuário logado para registrar log");
+      return;
+    }
+    
+    const logRef = db.ref("logs");
+    const logData = {
+      usuario: currentUser,
+      acao: action,
+      detalhes: details,
+      data: new Date().toLocaleString(),
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+    
+    logRef.push(logData);
+  },
+  
+  // Função para exibir logs (apenas admin)
+  render() {
+    const logsContainer = document.getElementById("logsList");
+    if (!logsContainer) return;
+    
+    db.ref("logs").orderByChild("timestamp").once("value", (snap) => {
+      logsContainer.innerHTML = "";
+      const logs = snap.val();
+      
+      if (!logs) {
+        logsContainer.innerHTML = '<div class="no-logs">📭 Nenhum log registrado ainda</div>';
+        return;
+      }
+      
+      // Ordena do mais recente para o mais antigo
+      const logsArray = Object.entries(logs).sort((a,b) => b[1].timestamp - a[1].timestamp);
+      
+      logsArray.forEach(([id, log]) => {
+        const logDiv = document.createElement("div");
+        logDiv.className = "log-item";
+        
+        // Define ícone baseado na ação
+        let icon = "📝";
+        if (log.acao.includes("Jogador")) icon = "👤";
+        if (log.acao.includes("Partida")) icon = "⚽";
+        if (log.acao.includes("Reset")) icon = "⚠️";
+        if (log.acao.includes("Login")) icon = "🔐";
+        if (log.acao.includes("Escalação")) icon = "📋";
+        
+        logDiv.innerHTML = `
+          <div class="log-header">
+            <span class="log-icon">${icon}</span>
+            <span class="log-usuario">${log.usuario}</span>
+            <span class="log-data">📅 ${log.data}</span>
+          </div>
+          <div class="log-acao">${log.acao}</div>
+          <div class="log-detalhes">${log.detalhes}</div>
+        `;
+        
+        logsContainer.appendChild(logDiv);
+      });
+      
+      // Contador de logs
+      const logCount = document.getElementById("logCount");
+      if (logCount) {
+        logCount.textContent = `${logsArray.length} logs registrados`;
+      }
+    });
+  }
+};
+
 // ================= LOADER =================
 window.onload = () => {
   setTimeout(() => loader.style.display = "none", 1200);
+  // Carrega logs se estiver na tela de admin
+  Logger.render();
 };
 
 // ================= TOAST =================
@@ -70,6 +151,11 @@ const UI = {
     document.getElementById(id).classList.add("active");
     document.querySelectorAll(".menu div").forEach(m => m.classList.remove("active"));
     el.classList.add("active");
+    
+    // Recarrega logs quando entrar na tela de admin
+    if (id === "admin" && isAdmin) {
+      Logger.render();
+    }
   }
 };
 
@@ -77,6 +163,7 @@ const UI = {
 const playersRef = db.ref("players");
 const matchesRef = db.ref("matches");
 const lineupRef = db.ref("lineup");
+const logsRef = db.ref("logs");
 
 // ================= PLAYERS =================
 const Player = {
@@ -85,6 +172,7 @@ const Player = {
       Toast.show("Digite o nome do jogador!");
       return;
     }
+    
     let player = {
       nome: nome.value,
       img: img.value || "https://via.placeholder.com/150?text=Jogador",
@@ -96,7 +184,13 @@ const Player = {
       def: def.value || "0",
       phy: phy.value || "0"
     };
-    playersRef.push(player);
+
+    playersRef.push(player).then(() => {
+      // Registra log
+      Logger.add("➕ Adicionou Jogador", `Nome: ${player.nome} | OVR: ${player.ovr}`);
+      Toast.show("Jogador salvo online!");
+    });
+    
     nome.value = "";
     img.value = "";
     ovr.value = "";
@@ -106,7 +200,6 @@ const Player = {
     dri.value = "";
     def.value = "";
     phy.value = "";
-    Toast.show("Jogador salvo online!");
   },
 
   render(data) {
@@ -135,7 +228,6 @@ const Player = {
 // ================= MATCHES COMPLETO COM FORMATAÇÃO AUTOMÁTICA =================
 const Match = {
   
-  // Função para formatar gols
   formatGols(input) {
     if (!input.trim()) return "";
     let lines = input.split("\n");
@@ -156,7 +248,6 @@ const Match = {
     return formatted.join("\n");
   },
   
-  // Função para formatar assistências
   formatAssists(input) {
     if (!input.trim()) return "";
     let lines = input.split("\n");
@@ -177,7 +268,6 @@ const Match = {
     return formatted.join("\n");
   },
   
-  // Função para formatar defesas
   formatDefesas(input) {
     if (!input.trim()) return "";
     let lines = input.split("\n");
@@ -198,7 +288,6 @@ const Match = {
     return formatted.join("\n");
   },
   
-  // Função para formatar cartões
   formatCartoes(input) {
     if (!input.trim()) return "";
     let lines = input.split("\n");
@@ -249,9 +338,12 @@ const Match = {
       data: new Date().toLocaleString()
     };
 
-    matchesRef.push(match);
+    matchesRef.push(match).then(() => {
+      // Registra log
+      Logger.add("⚽ Adicionou Partida", `${match.timeA} ${match.placar} ${match.timeB} | MVP: ${match.mvp || "Não definido"}`);
+      Toast.show("Partida salva!");
+    });
     
-    // Limpa os campos
     timeA.value = "";
     timeB.value = "";
     timeALogo.value = "";
@@ -267,8 +359,6 @@ const Match = {
     men2.value = "";
     men3.value = "";
     obsPartida.value = "";
-    
-    Toast.show("Partida salva com formatação automática!");
   },
 
   render(data) {
@@ -280,10 +370,8 @@ const Match = {
     let artilharia = {};
 
     Object.values(data || {}).forEach(m => {
-      // Renderiza partida com design completo
       matchesList.innerHTML += `
       <div class="match-full-card">
-        <!-- Header com logo da liga -->
         <div class="match-header">
           <div class="match-liga-info">
             ${m.ligaLogo ? `<img src="${m.ligaLogo}" class="liga-logo" alt="Liga">` : '<div class="liga-logo-placeholder">🏆</div>'}
@@ -292,7 +380,6 @@ const Match = {
           <div class="match-date">📅 ${m.data}</div>
         </div>
         
-        <!-- Times e Placar -->
         <div class="match-teams-container">
           <div class="match-team-box">
             <div class="team-logo-wrapper">
@@ -309,7 +396,6 @@ const Match = {
           </div>
         </div>
         
-        <!-- Estatísticas -->
         <div class="match-stats-grid">
           ${m.gols ? `
           <div class="stat-section">
@@ -340,7 +426,6 @@ const Match = {
           ` : ''}
         </div>
         
-        <!-- MVPs e Menções -->
         <div class="match-awards">
           ${m.mvp ? `
           <div class="mvp-section">
@@ -369,7 +454,6 @@ const Match = {
         ` : ''}
       </div>`;
 
-      // Cálculo da tabela
       let [g1, g2] = (m.placar || "0x0").split("x").map(Number);
       tabela[m.timeA] = tabela[m.timeA] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
       tabela[m.timeB] = tabela[m.timeB] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
@@ -394,7 +478,6 @@ const Match = {
         tabela[m.timeB].empates += 1;
       }
 
-      // Artilharia (extrai nomes dos gols formatados)
       if (m.gols) {
         let golsLines = m.gols.split("\n");
         golsLines.forEach(line => {
@@ -407,7 +490,6 @@ const Match = {
       }
     });
 
-    // Renderiza tabela
     Object.entries(tabela)
       .sort((a,b) => b[1].pontos - a[1].pontos)
       .forEach((t, index) => {
@@ -421,7 +503,6 @@ const Match = {
         </div>`;
       });
 
-    // Renderiza artilharia
     Object.entries(artilharia)
       .sort((a,b) => b[1] - a[1])
       .forEach((a, index) => {
@@ -434,6 +515,7 @@ const Match = {
       });
   }
 };
+
 // ================= LINEUP =================
 const Lineup = {
   add() {
@@ -445,9 +527,11 @@ const Lineup = {
       nome: pNome.value,
       x: 50,
       y: 50
+    }).then(() => {
+      Logger.add("📋 Adicionou à Escalação", `Jogador: ${pNome.value}`);
+      Toast.show("Jogador adicionado ao campo!");
     });
     pNome.value = "";
-    Toast.show("Jogador adicionado ao campo!");
   },
 
   render(data) {
@@ -525,12 +609,24 @@ lineupRef.on("value", snap => {
   Lineup.render(snap.val());
 });
 
-// ================= SYSTEM =================
+// ================= SYSTEM (Reset modificado para NÃO apagar logs) =================
 const System = {
   reset() {
-    if(confirm("⚠️ ATENÇÃO! Isso vai apagar TODOS os dados do banco. Tem certeza?")) {
-      db.ref().set(null);
-      Toast.show("Banco de dados resetado!");
+    if(!isAdmin) {
+      Toast.show("Você não tem permissão!");
+      return;
+    }
+    
+    if(confirm("⚠️ ATENÇÃO! Isso vai apagar TODOS OS DADOS exceto os LOGS. Tem certeza?")) {
+      // Remove apenas players, matches e lineup, mantém logs
+      playersRef.set(null);
+      matchesRef.set(null);
+      lineupRef.set(null);
+      
+      // Registra log antes de limpar
+      Logger.add("⚠️ Reset Total", "Todos os dados foram apagados (players, matches, lineup)");
+      
+      Toast.show("Dados resetados! Logs mantidos.");
       setTimeout(() => location.reload(), 1500);
     }
   }
