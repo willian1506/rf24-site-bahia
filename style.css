@@ -1265,3 +1265,173 @@ button:hover {
     font-size: 14px;
   }
 }
+
+/* ================= LINEUP DA PARTIDA ================= */
+.match-lineup-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 5px;
+  transition: 0.2s;
+}
+
+.match-lineup-btn:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+.match-lineup-section {
+  margin: 15px;
+  border-top: 1px solid rgba(198, 40, 40, 0.3);
+  padding-top: 15px;
+}
+
+.match-lineup-header {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  color: #ffd966;
+}
+
+.match-lineup-header:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.match-lineup-content {
+  display: block;
+  padding: 15px;
+}
+
+.match-lineup-starters,
+.match-lineup-subs,
+.match-lineup-coach {
+  margin-bottom: 20px;
+}
+
+.match-lineup-starters h4,
+.match-lineup-subs h4,
+.match-lineup-coach h4 {
+  color: #ffd966;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.match-lineup-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lineup-player {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 30px;
+  padding: 4px 12px 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.lineup-player img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.no-players {
+  font-size: 12px;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* ================= MODAL DE LINEUP ================= */
+.match-lineup-players {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.lineup-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 15px;
+}
+
+.lineup-section h4 {
+  color: #ffd966;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.lineup-players-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+  min-height: 60px;
+}
+
+.lineup-player-item {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 30px;
+  padding: 4px 12px 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  position: relative;
+}
+
+.lineup-player-img img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.lineup-player-name {
+  max-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lineup-remove-btn {
+  background: none;
+  border: none;
+  color: #ff0000;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 5px;
+  margin: 0;
+}
+
+.lineup-remove-btn:hover {
+  transform: scale(1.2);
+  box-shadow: none;
+}
+
+.add-player-btn {
+  background: #4caf50;
+  padding: 6px 12px;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.add-player-btn:hover {
+  background: #45a049;
+}
