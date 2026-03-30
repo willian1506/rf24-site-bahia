@@ -44,6 +44,15 @@ function logoutAdmin(){
   Toast.show("Saiu da conta!");
 }
 
+function openAdmin(el){
+  if(!isAdmin){
+    loginAdmin();
+    if(!isAdmin) return;
+  }
+
+  UI.go('admin', el);
+}
+
 // ================= LOADER =================
 window.onload = () => {
   setTimeout(() => loader.style.display = "none", 1200);
