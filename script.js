@@ -23,12 +23,9 @@ const ADMINS = [
 let isAdmin = localStorage.getItem("admin") === "true";
 
 function loginAdmin(){
-
   let user = prompt("Usuário:");
   let pass = prompt("Senha:");
-
   let autorizado = ADMINS.find(a => a.user === user && a.pass === pass);
-
   if(autorizado){
     isAdmin = true;
     localStorage.setItem("admin", "true");
@@ -49,7 +46,6 @@ function openAdmin(el){
     loginAdmin();
     if(!isAdmin) return;
   }
-
   UI.go('admin', el);
 }
 
@@ -72,7 +68,6 @@ const UI = {
   go(id, el) {
     document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
-
     document.querySelectorAll(".menu div").forEach(m => m.classList.remove("active"));
     el.classList.add("active");
   }
@@ -85,13 +80,11 @@ const lineupRef = db.ref("lineup");
 
 // ================= PLAYERS =================
 const Player = {
-
   add() {
     if (!nome.value.trim()) {
       Toast.show("Digite o nome do jogador!");
       return;
     }
-    
     let player = {
       nome: nome.value,
       img: img.value || "https://via.placeholder.com/150?text=Jogador",
@@ -103,10 +96,7 @@ const Player = {
       def: def.value || "0",
       phy: phy.value || "0"
     };
-
     playersRef.push(player);
-    
-    // Limpa os campos
     nome.value = "";
     img.value = "";
     ovr.value = "";
@@ -116,13 +106,11 @@ const Player = {
     dri.value = "";
     def.value = "";
     phy.value = "";
-    
     Toast.show("Jogador salvo online!");
   },
 
   render(data) {
     playersList.innerHTML = "";
-
     Object.values(data || {})
       .sort((a,b)=>b.ovr - a.ovr)
       .forEach(p => {
@@ -144,9 +132,8 @@ const Player = {
   }
 };
 
-// ================= MATCHES =================
+// ================= MATCHES COMPLETO =================
 const Match = {
-
   add() {
     if (!timeA.value || !timeB.value) {
       Toast.show("Preencha os nomes dos times!");
@@ -158,8 +145,18 @@ const Match = {
       timeB: timeB.value,
       timeALogo: timeALogo.value || null,
       timeBLogo: timeBLogo.value || null,
+      ligaLogo: ligaLogo.value || null,
+      tipoPartida: tipoPartida.value || "liga",
       placar: placar.value || "0x0",
-      gols: gols.value || "",
+      gols: golsList.value || "",
+      assistencias: assistsList.value || "",
+      defesas: defesasList.value || "",
+      cartoes: cartoesList.value || "",
+      mvp: mvp.value || "",
+      menc1: men1.value || "",
+      menc2: men2.value || "",
+      menc3: men3.value || "",
+      observacoes: obsPartida.value || "",
       data: new Date().toLocaleString()
     };
 
@@ -169,8 +166,17 @@ const Match = {
     timeB.value = "";
     timeALogo.value = "";
     timeBLogo.value = "";
+    ligaLogo.value = "";
     placar.value = "";
-    gols.value = "";
+    golsList.value = "";
+    assistsList.value = "";
+    defesasList.value = "";
+    cartoesList.value = "";
+    mvp.value = "";
+    men1.value = "";
+    men2.value = "";
+    men3.value = "";
+    obsPartida.value = "";
     
     Toast.show("Partida salva!");
   },
@@ -184,26 +190,97 @@ const Match = {
     let artilharia = {};
 
     Object.values(data || {}).forEach(m => {
-
+      // Renderiza partida com design completo
       matchesList.innerHTML += `
-      <div class="match-card">
-        <div class="match-teams">
-          <div class="team">
-            ${m.timeALogo ? `<img src="${m.timeALogo}" class="team-logo" alt="${m.timeA}" onerror="this.style.display='none'">` : '<div class="no-logo"></div>'}
-            <span class="team-name">${m.timeA}</span>
+      <div class="match-full-card">
+        <!-- Header com logo da liga -->
+        <div class="match-header">
+          <div class="match-liga-info">
+            ${m.ligaLogo ? `<img src="${m.ligaLogo}" class="liga-logo" alt="Liga">` : '<div class="liga-logo-placeholder">🏆</div>'}
+            <span class="match-type">${m.tipoPartida === 'liga' ? '🏆 PARTIDA DE LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span>
           </div>
-          <div class="match-score">${m.placar}</div>
-          <div class="team">
-            ${m.timeBLogo ? `<img src="${m.timeBLogo}" class="team-logo" alt="${m.timeB}" onerror="this.style.display='none'">` : '<div class="no-logo"></div>'}
-            <span class="team-name">${m.timeB}</span>
+          <div class="match-date">📅 ${m.data}</div>
+        </div>
+        
+        <!-- Times e Placar -->
+        <div class="match-teams-container">
+          <div class="match-team-box">
+            <div class="team-logo-wrapper">
+              ${m.timeALogo ? `<img src="${m.timeALogo}" class="team-logo-big" alt="${m.timeA}">` : '<div class="team-logo-placeholder">⚽</div>'}
+            </div>
+            <h3 class="team-name-big">${m.timeA}</h3>
+          </div>
+          <div class="match-score-big">${m.placar}</div>
+          <div class="match-team-box">
+            <div class="team-logo-wrapper">
+              ${m.timeBLogo ? `<img src="${m.timeBLogo}" class="team-logo-big" alt="${m.timeB}">` : '<div class="team-logo-placeholder">⚽</div>'}
+            </div>
+            <h3 class="team-name-big">${m.timeB}</h3>
           </div>
         </div>
-        ${m.data ? `<div class="match-date">📅 ${m.data}</div>` : ''}
-        ${m.gols ? `<div class="match-scorer">⚽ Artilheiro: ${m.gols}</div>` : ''}
+        
+        <!-- Estatísticas -->
+        <div class="match-stats-grid">
+          ${m.gols ? `
+          <div class="stat-section">
+            <div class="stat-title">⚽ GOLS</div>
+            <div class="stat-content">${m.gols.replace(/\n/g, '<br>')}</div>
+          </div>
+          ` : ''}
+          
+          ${m.assistencias ? `
+          <div class="stat-section">
+            <div class="stat-title">👟 ASSISTÊNCIAS</div>
+            <div class="stat-content">${m.assistencias.replace(/\n/g, '<br>')}</div>
+          </div>
+          ` : ''}
+          
+          ${m.defesas ? `
+          <div class="stat-section">
+            <div class="stat-title">🧤 DEFESAS</div>
+            <div class="stat-content">${m.defesas.replace(/\n/g, '<br>')}</div>
+          </div>
+          ` : ''}
+          
+          ${m.cartoes ? `
+          <div class="stat-section">
+            <div class="stat-title">🟨🟥 CARTÕES</div>
+            <div class="stat-content">${m.cartoes.replace(/\n/g, '<br>')}</div>
+          </div>
+          ` : ''}
+        </div>
+        
+        <!-- MVPs e Menções -->
+        <div class="match-awards">
+          ${m.mvp ? `
+          <div class="mvp-section">
+            <div class="mvp-title">🏆 MELHOR DA PARTIDA (MVP)</div>
+            <div class="mvp-name">⭐ ${m.mvp}</div>
+          </div>
+          ` : ''}
+          
+          ${(m.menc1 || m.menc2 || m.menc3) ? `
+          <div class="mentions-section">
+            <div class="mentions-title">📋 MENÇÕES HONROSAS</div>
+            <div class="mentions-list">
+              ${m.menc1 ? `<div class="mention-item">🥇 ${m.menc1}</div>` : ''}
+              ${m.menc2 ? `<div class="mention-item">🥈 ${m.menc2}</div>` : ''}
+              ${m.menc3 ? `<div class="mention-item">🥉 ${m.menc3}</div>` : ''}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+        
+        ${m.observacoes ? `
+        <div class="match-observations">
+          <div class="obs-title">📝 OBSERVAÇÕES</div>
+          <div class="obs-content">${m.observacoes}</div>
+        </div>
+        ` : ''}
       </div>`;
 
+      // Cálculo da tabela
       let [g1, g2] = (m.placar || "0x0").split("x").map(Number);
-
       tabela[m.timeA] = tabela[m.timeA] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
       tabela[m.timeB] = tabela[m.timeB] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
       
@@ -227,16 +304,20 @@ const Match = {
         tabela[m.timeB].empates += 1;
       }
 
+      // Artilharia
       if (m.gols) {
-        let golsParts = m.gols.split(":");
-        if (golsParts.length === 2) {
-          let nome = golsParts[0].trim();
-          let qtd = parseInt(golsParts[1]);
-          artilharia[nome] = (artilharia[nome] || 0) + qtd;
-        }
+        let golsLines = m.gols.split("\n");
+        golsLines.forEach(line => {
+          let match = line.match(/([a-zA-ZÀ-ÿ]+)/);
+          if (match) {
+            let nome = match[1];
+            artilharia[nome] = (artilharia[nome] || 0) + 1;
+          }
+        });
       }
     });
 
+    // Renderiza tabela
     Object.entries(tabela)
       .sort((a,b) => b[1].pontos - a[1].pontos)
       .forEach((t, index) => {
@@ -251,6 +332,7 @@ const Match = {
         </div>`;
       });
 
+    // Renderiza artilharia
     Object.entries(artilharia)
       .sort((a,b) => b[1] - a[1])
       .forEach((a, index) => {
@@ -264,28 +346,24 @@ const Match = {
   }
 };
 
-// ================= LINEUP (CORRIGIDO) =================
+// ================= LINEUP =================
 const Lineup = {
-
   add() {
     if (!pNome.value.trim()) {
       Toast.show("Digite o nome do jogador!");
       return;
     }
-    
     lineupRef.push({
       nome: pNome.value,
       x: 50,
       y: 50
     });
-    
     pNome.value = "";
     Toast.show("Jogador adicionado ao campo!");
   },
 
   render(data) {
     field.innerHTML = "";
-    
     if (!data) return;
 
     Object.entries(data).forEach(([id, p]) => {
@@ -304,13 +382,10 @@ const Lineup = {
       el.addEventListener("mousedown", (e) => {
         e.preventDefault();
         isDragging = true;
-        
         startMouseX = e.clientX;
         startMouseY = e.clientY;
-        
         startLeft = parseFloat(el.style.left);
         startTop = parseFloat(el.style.top);
-        
         el.style.cursor = "grabbing";
         el.style.opacity = "0.7";
         el.style.zIndex = "100";
@@ -318,24 +393,17 @@ const Lineup = {
       
       const onMouseMove = (e) => {
         if (!isDragging) return;
-        
         const rect = field.getBoundingClientRect();
-        
         const deltaX = e.clientX - startMouseX;
         const deltaY = e.clientY - startMouseY;
-        
         const deltaPercentX = (deltaX / rect.width) * 100;
         const deltaPercentY = (deltaY / rect.height) * 100;
-        
         let newX = startLeft + deltaPercentX;
         let newY = startTop + deltaPercentY;
-        
         newX = Math.min(Math.max(newX, 0), 100);
         newY = Math.min(Math.max(newY, 0), 100);
-        
         el.style.left = newX + "%";
         el.style.top = newY + "%";
-        
         lineupRef.child(id).update({ x: newX, y: newY });
       };
       
@@ -350,7 +418,6 @@ const Lineup = {
       
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
-      
       el.style.cursor = "grab";
       field.appendChild(el);
     });
@@ -381,20 +448,15 @@ const System = {
   }
 };
 
-// ================= SEARCH FUNCTION =================
+// ================= SEARCH =================
 const searchPlayer = document.getElementById("searchPlayer");
 if (searchPlayer) {
   searchPlayer.addEventListener("input", (e) => {
     const searchTerm = e.target.value.toLowerCase();
     const cards = document.querySelectorAll("#playersList .card");
-    
     cards.forEach(card => {
       const nome = card.querySelector("h3")?.innerText.toLowerCase() || "";
-      if (nome.includes(searchTerm)) {
-        card.style.display = "block";
-      } else {
-        card.style.display = "none";
-      }
+      card.style.display = nome.includes(searchTerm) ? "block" : "none";
     });
   });
 }
