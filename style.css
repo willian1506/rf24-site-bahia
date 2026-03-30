@@ -997,3 +997,35 @@ button:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: #ff4444;
 }
+
+/* ================= BADGES DE EDIÇÃO ================= */
+.edit-badge {
+  margin-top: 10px;
+  font-size: 10px;
+  opacity: 0.6;
+  text-align: center;
+  transition: 0.3s;
+  color: #ffd966;
+}
+
+.admin-card {
+  cursor: pointer;
+}
+
+.admin-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(198, 40, 40, 0.3);
+}
+
+.admin-card:hover .edit-badge {
+  opacity: 1;
+  color: #fff;
+}
+
+.view-only-badge {
+  margin-top: 10px;
+  font-size: 10px;
+  opacity: 0.5;
+  text-align: center;
+  color: #888;
+}
