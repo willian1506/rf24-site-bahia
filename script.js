@@ -245,7 +245,7 @@ const Player = {
   }
 };
 
-// ================= MATCHES COMPLETO COM FORMATAÇÃO AUTOMÁTICA =================
+// ================= MATCHES COMPLETO COM DATA/HORA =================
 const Match = {
   
   formatGols(input) {
@@ -338,6 +338,31 @@ const Match = {
       return;
     }
     
+    // Formata a data e hora
+    let dataPartida = "";
+    if (partidaData.value) {
+      const dataObj = new Date(partidaData.value);
+      const dia = dataObj.getDate().toString().padStart(2, '0');
+      const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
+      const ano = dataObj.getFullYear();
+      const dataFormatada = `${dia}/${mes}/${ano}`;
+      
+      if (partidaHora.value) {
+        dataPartida = `${dataFormatada} - ${partidaHora.value}`;
+      } else {
+        dataPartida = dataFormatada;
+      }
+    } else {
+      // Se não escolher data, usa a data atual
+      const agora = new Date();
+      const dia = agora.getDate().toString().padStart(2, '0');
+      const mes = (agora.getMonth() + 1).toString().padStart(2, '0');
+      const ano = agora.getFullYear();
+      const hora = agora.getHours().toString().padStart(2, '0');
+      const minuto = agora.getMinutes().toString().padStart(2, '0');
+      dataPartida = `${dia}/${mes}/${ano} - ${hora}:${minuto}`;
+    }
+    
     let match = {
       timeA: timeA.value,
       timeB: timeB.value,
@@ -355,15 +380,16 @@ const Match = {
       menc2: men2.value || "",
       menc3: men3.value || "",
       observacoes: obsPartida.value || "",
-      data: new Date().toLocaleString()
+      dataPartida: dataPartida,
+      timestamp: new Date(partidaData.value + "T" + (partidaHora.value || "00:00")).getTime() || Date.now()
     };
 
     matchesRef.push(match).then(() => {
-      // Registra log
-      Logger.add("⚽ Adicionou Partida", `${match.timeA} ${match.placar} ${match.timeB} | MVP: ${match.mvp || "Não definido"}`);
+      Logger.add("⚽ Adicionou Partida", `${match.timeA} ${match.placar} ${match.timeB} | ${match.dataPartida} | MVP: ${match.mvp || "Não definido"}`);
       Toast.show("Partida salva!");
     });
     
+    // Limpa os campos
     timeA.value = "";
     timeB.value = "";
     timeALogo.value = "";
@@ -379,6 +405,8 @@ const Match = {
     men2.value = "";
     men3.value = "";
     obsPartida.value = "";
+    partidaData.value = "";
+    partidaHora.value = "";
   },
 
   render(data) {
@@ -388,18 +416,26 @@ const Match = {
 
     let tabela = {};
     let artilharia = {};
+    
+    // Ordena partidas por timestamp (mais recentes primeiro)
+    const partidasArray = Object.entries(data || {}).sort((a,b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
 
-    Object.values(data || {}).forEach(m => {
+    partidasArray.forEach(([key, m]) => {
       matchesList.innerHTML += `
       <div class="match-full-card">
+        <!-- Header com logo da liga e data -->
         <div class="match-header">
           <div class="match-liga-info">
             ${m.ligaLogo ? `<img src="${m.ligaLogo}" class="liga-logo" alt="Liga">` : '<div class="liga-logo-placeholder">🏆</div>'}
             <span class="match-type">${m.tipoPartida === 'liga' ? '🏆 PARTIDA DE LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span>
           </div>
-          <div class="match-date">📅 ${m.data}</div>
+          <div class="match-date-time">
+            <span class="match-date-icon">📅</span>
+            <span class="match-date-value">${m.dataPartida || "Data não informada"}</span>
+          </div>
         </div>
         
+        <!-- Times e Placar -->
         <div class="match-teams-container">
           <div class="match-team-box">
             <div class="team-logo-wrapper">
@@ -416,6 +452,7 @@ const Match = {
           </div>
         </div>
         
+        <!-- Estatísticas -->
         <div class="match-stats-grid">
           ${m.gols ? `
           <div class="stat-section">
@@ -446,6 +483,7 @@ const Match = {
           ` : ''}
         </div>
         
+        <!-- MVPs e Menções -->
         <div class="match-awards">
           ${m.mvp ? `
           <div class="mvp-section">
@@ -474,6 +512,7 @@ const Match = {
         ` : ''}
       </div>`;
 
+      // Cálculo da tabela (continua igual)
       let [g1, g2] = (m.placar || "0x0").split("x").map(Number);
       tabela[m.timeA] = tabela[m.timeA] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
       tabela[m.timeB] = tabela[m.timeB] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
@@ -498,6 +537,7 @@ const Match = {
         tabela[m.timeB].empates += 1;
       }
 
+      // Artilharia
       if (m.gols) {
         let golsLines = m.gols.split("\n");
         golsLines.forEach(line => {
@@ -510,6 +550,7 @@ const Match = {
       }
     });
 
+    // Renderiza tabela
     Object.entries(tabela)
       .sort((a,b) => b[1].pontos - a[1].pontos)
       .forEach((t, index) => {
@@ -523,6 +564,7 @@ const Match = {
         </div>`;
       });
 
+    // Renderiza artilharia
     Object.entries(artilharia)
       .sort((a,b) => b[1] - a[1])
       .forEach((a, index) => {
