@@ -270,5 +270,22 @@
 </div>
 
 <script src="script.js"></script>
+
+  <div class="admin-box">
+  <h3>🏆 Gerenciar Tabela de Classificação</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+    <input id="tableTeam" placeholder="Nome do time">
+    <input id="tablePts" placeholder="Pontos" type="number">
+    <input id="tablePj" placeholder="Jogos" type="number">
+    <input id="tableV" placeholder="Vitórias" type="number">
+    <input id="tableE" placeholder="Empates" type="number">
+    <input id="tableD" placeholder="Derrotas" type="number">
+    <input id="tableGp" placeholder="Gols Pró" type="number">
+    <input id="tableGc" placeholder="Gols Contra" type="number">
+  </div>
+  <button onclick="Standings.addOrUpdate()">➕ Adicionar/Atualizar Time</button>
+  <small>💡 A tabela agora é manual! Você controla os pontos.</small>
+</div>
+  
 </body>
 </html>
