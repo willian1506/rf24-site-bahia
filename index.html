@@ -175,17 +175,33 @@
     
     <input id="placar" placeholder="Placar (ex: 2x1)">
     
-    <!-- Gols -->
-    <textarea id="golsList" placeholder="GOLS (ex: Willian⚽ 15'&#10;Stormy⚽ 32'&#10;Mkz⚽ 67')" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    <!-- GOLS - Formato simplificado -->
+    <div class="input-group">
+      <label style="font-size: 12px; opacity: 0.8;">⚽ GOLS (Digite: jogador minuto)</label>
+      <textarea id="golsList" placeholder="Exemplos:&#10;Willian 15&#10;Stormy 32&#10;Mkz 67" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+      <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e minuto separados por espaço</small>
+    </div>
     
-    <!-- Assistências -->
-    <textarea id="assistsList" placeholder="ASSISTÊNCIAS (ex: Willian👟 15'&#10;Stormy👟 32')" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    <!-- ASSISTÊNCIAS - Formato simplificado -->
+    <div class="input-group">
+      <label style="font-size: 12px; opacity: 0.8;">👟 ASSISTÊNCIAS (Digite: jogador minuto)</label>
+      <textarea id="assistsList" placeholder="Exemplos:&#10;Willian 15&#10;Stormy 32" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+      <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e minuto separados por espaço</small>
+    </div>
     
-    <!-- Defesas de Goleiro -->
-    <textarea id="defesasList" placeholder="DEFESAS (ex: Goleiro🧤 5 defesas&#10;Goleiro🧤 3 defesas)" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    <!-- DEFESAS - Formato simplificado -->
+    <div class="input-group">
+      <label style="font-size: 12px; opacity: 0.8;">🧤 DEFESAS (Digite: goleiro quantidade)</label>
+      <textarea id="defesasList" placeholder="Exemplos:&#10;Goleiro 5&#10;Goleiro 3" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+      <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e número de defesas</small>
+    </div>
     
-    <!-- Cartões -->
-    <textarea id="cartoesList" placeholder="CARTÕES (ex: Jogador🟨 30'&#10;Jogador🟥 75')" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    <!-- CARTÕES - Formato simplificado -->
+    <div class="input-group">
+      <label style="font-size: 12px; opacity: 0.8;">🟨🟥 CARTÕES (Digite: jogador minuto tipo)</label>
+      <textarea id="cartoesList" placeholder="Exemplos:&#10;Willian 30 amarelo&#10;Stormy 75 vermelho" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+      <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Use 'amarelo' ou 'vermelho' para definir o cartão</small>
+    </div>
     
     <!-- Melhor da Partida -->
     <div style="margin: 10px 0;">
@@ -209,6 +225,16 @@
     <button onclick="Match.add()">✅ Adicionar Partida</button>
   </div>
 
+  <!-- ESCALAÇÃO -->
+  <div class="admin-box">
+    <h3>Escalação</h3>
+    <input id="pNome" placeholder="Nome do jogador">
+    <button onclick="Lineup.add()">Adicionar ao campo</button>
+  </div>
+
+  <button class="danger" onclick="System.reset()">⚠️ RESET TOTAL</button>
+
+</section>
   <!-- ESCALAÇÃO -->
   <div class="admin-box">
     <h3>Escalação</h3>
