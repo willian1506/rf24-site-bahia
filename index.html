@@ -47,37 +47,35 @@
 <section id="home" class="screen active">
 
   <div class="hero">
-    <h2>Bem-vindo ao site oficial do Clube esporte salvador do Real futebol 24!</h2>
-    <p>Clube esporte Salvador</p>
+    <div class="club-logo-container">
+      <img src="https://images-ext-1.discordapp.net/external/p5eaHKQJ5fDQDwNOpt_FUbXYbgxc7iWP652F5kmDZKs/%3Fsize%3D2048/https/cdn.discordapp.com/icons/1444161827113140226/3d299d4be752faf8374189e5c4a05f4d.png?format=webp&quality=lossless" alt="Clube Esporte Salvador" class="club-logo-hero">
+      <div class="club-logo-glow"></div>
+    </div>
+    <h2 class="hero-title">Bem-vindo ao site oficial do <span class="highlight">Clube Esporte Salvador</span> do Real Futebol 24!</h2>
+    <p class="hero-subtitle">🏆 Clube Esporte Salvador - O gigante do Real Futebol 24 🏆</p>
   </div>
 
   <div class="history">
-
     <h3>📖 História do Clube</h3>
-
     <p>
-    Um clube grandioso, forjado na luta e na superação, que nunca desistiu de conquistar seu espaço.
+      Um clube grandioso, forjado na luta e na superação, que nunca desistiu de conquistar seu espaço.
     </p>
-
     <p>
-    A verdadeira virada de chave veio com a chegada do diretor <b>MonkeyWsp0</b>, ao lado de <b>Stormy1835</b> e <b>Willian1506</b>.
+      A verdadeira virada de chave veio com a chegada do diretor <b class="highlight-name">MonkeyWsp0</b>, ao lado de <b class="highlight-name">Stormy1835</b> e <b class="highlight-name">Willian1506</b>.
     </p>
-
     <p>
-    Dentro de campo, Stormy1835 e Willian1506 dominaram com suas habilidades, enquanto MonkeyWsp0 estruturou o clube com uma gestão sólida.
+      Dentro de campo, Stormy1835 e Willian1506 dominaram com suas habilidades, enquanto MonkeyWsp0 estruturou o clube com uma gestão sólida.
     </p>
-
     <p>
-    De desacreditado, o time virou líder absoluto, conquistando respeito e impondo seu jogo.
+      De desacreditado, o time virou líder absoluto, conquistando respeito e impondo seu jogo.
     </p>
-
     <p>
-    Hoje, o Clube Esporte Salvador é símbolo de evolução, união e vitória.
+      Hoje, o Clube Esporte Salvador é símbolo de evolução, união e vitória.
     </p>
-
   </div>
 
 </section>
+
 
 <!-- ================= JOGADORES ================= -->
 <section id="players" class="screen">
@@ -175,28 +173,28 @@
     
     <input id="placar" placeholder="Placar (ex: 2x1)">
     
-    <!-- GOLS - Formato simplificado -->
+    <!-- GOLS -->
     <div class="input-group">
       <label style="font-size: 12px; opacity: 0.8;">⚽ GOLS (Digite: jogador minuto)</label>
       <textarea id="golsList" placeholder="Exemplos:&#10;Willian 15&#10;Stormy 32&#10;Mkz 67" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
       <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e minuto separados por espaço</small>
     </div>
     
-    <!-- ASSISTÊNCIAS - Formato simplificado -->
+    <!-- ASSISTÊNCIAS -->
     <div class="input-group">
       <label style="font-size: 12px; opacity: 0.8;">👟 ASSISTÊNCIAS (Digite: jogador minuto)</label>
       <textarea id="assistsList" placeholder="Exemplos:&#10;Willian 15&#10;Stormy 32" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
       <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e minuto separados por espaço</small>
     </div>
     
-    <!-- DEFESAS - Formato simplificado -->
+    <!-- DEFESAS -->
     <div class="input-group">
       <label style="font-size: 12px; opacity: 0.8;">🧤 DEFESAS (Digite: goleiro quantidade)</label>
       <textarea id="defesasList" placeholder="Exemplos:&#10;Goleiro 5&#10;Goleiro 3" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
       <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e número de defesas</small>
     </div>
     
-    <!-- CARTÕES - Formato simplificado -->
+    <!-- CARTÕES -->
     <div class="input-group">
       <label style="font-size: 12px; opacity: 0.8;">🟨🟥 CARTÕES (Digite: jogador minuto tipo)</label>
       <textarea id="cartoesList" placeholder="Exemplos:&#10;Willian 30 amarelo&#10;Stormy 75 vermelho" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
@@ -232,17 +230,8 @@
     <button onclick="Lineup.add()">Adicionar ao campo</button>
   </div>
 
-  <button class="danger" onclick="System.reset()">⚠️ RESET TOTAL</button>
-
-</section>
-  <!-- ESCALAÇÃO -->
-  <div class="admin-box">
-    <h3>Escalação</h3>
-    <input id="pNome" placeholder="Nome do jogador">
-    <button onclick="Lineup.add()">Adicionar ao campo</button>
-  </div>
-
-  <button class="danger" onclick="System.reset()">⚠️ RESET TOTAL</button>
+  <!-- BOTÃO RESET APENAS AQUI -->
+  <button class="danger" onclick="System.reset()">⚠️ RESET TOTAL DO BANCO DE DADOS</button>
 
 </section>
 
