@@ -1457,3 +1457,14 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .logout-btn:hover {
   background: #c62828;
 }
+
+/* Força o loader a desaparecer após o carregamento */
+#loader {
+  animation: desaparecer 2s forwards;
+}
+
+@keyframes desaparecer {
+  0% { opacity: 1; visibility: visible; }
+  90% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; display: none; }
+}
