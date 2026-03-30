@@ -19,27 +19,22 @@ const ADMINS = [
   {user:"Mkz", pass:"12456453", nome:"Mkz"}
 ];
 
-// ================= LOGIN (CORRIGIDO) =================
+// ================= LOGIN =================
 let isAdmin = localStorage.getItem("admin") === "true";
 let currentUser = localStorage.getItem("currentUser") || null;
 
 function loginAdmin(){
   let user = prompt("👤 Usuário:");
-  
-  if (!user) {
+  if (!user || user === null) {
     Toast.show("Login cancelado!");
     return false;
   }
-  
   let pass = prompt("🔐 Senha:");
-  
-  if (!pass) {
+  if (!pass || pass === null) {
     Toast.show("Login cancelado!");
     return false;
   }
-
   let autorizado = ADMINS.find(a => a.user === user && a.pass === pass);
-
   if(autorizado){
     isAdmin = true;
     currentUser = autorizado.nome;
@@ -48,7 +43,7 @@ function loginAdmin(){
     Toast.show(`✅ Login realizado como ${autorizado.nome}!`);
     return true;
   } else {
-    Toast.show("❌ Acesso negado! Usuário ou senha incorretos.");
+    Toast.show("❌ Acesso negado!");
     return false;
   }
 }
@@ -58,101 +53,23 @@ function logoutAdmin(){
   currentUser = null;
   localStorage.removeItem("admin");
   localStorage.removeItem("currentUser");
-  Toast.show("👋 Saiu da conta!");
+  Toast.show("👋 Saiu da conta do admin!");
+  const homeButton = document.querySelector('.menu div:first-child');
+  if (homeButton) UI.go('home', homeButton);
 }
 
 function openAdmin(el){
-  // Se já está logado, abre direto
   if(isAdmin){
     UI.go('admin', el);
     return;
   }
-  
-  // Se não está logado, tenta fazer login
   let logou = loginAdmin();
-  if(logou){
-    UI.go('admin', el);
-  }
-  // Se não logou, não faz nada (permanece na tela atual)
+  if(logou) UI.go('admin', el);
 }
-
-// ================= SISTEMA DE LOGS =================
-const Logger = {
-  // Função para adicionar log
-  add(action, details) {
-    if (!currentUser) {
-      console.warn("Nenhum usuário logado para registrar log");
-      return;
-    }
-    
-    const logRef = db.ref("logs");
-    const logData = {
-      usuario: currentUser,
-      acao: action,
-      detalhes: details,
-      data: new Date().toLocaleString(),
-      timestamp: firebase.database.ServerValue.TIMESTAMP
-    };
-    
-    logRef.push(logData);
-  },
-  
-  // Função para exibir logs (apenas admin)
-  render() {
-    const logsContainer = document.getElementById("logsList");
-    if (!logsContainer) return;
-    
-    db.ref("logs").orderByChild("timestamp").once("value", (snap) => {
-      logsContainer.innerHTML = "";
-      const logs = snap.val();
-      
-      if (!logs) {
-        logsContainer.innerHTML = '<div class="no-logs">📭 Nenhum log registrado ainda</div>';
-        return;
-      }
-      
-      // Ordena do mais recente para o mais antigo
-      const logsArray = Object.entries(logs).sort((a,b) => b[1].timestamp - a[1].timestamp);
-      
-      logsArray.forEach(([id, log]) => {
-        const logDiv = document.createElement("div");
-        logDiv.className = "log-item";
-        
-        // Define ícone baseado na ação
-        let icon = "📝";
-        if (log.acao.includes("Jogador")) icon = "👤";
-        if (log.acao.includes("Partida")) icon = "⚽";
-        if (log.acao.includes("Reset")) icon = "⚠️";
-        if (log.acao.includes("Login")) icon = "🔐";
-        if (log.acao.includes("Escalação")) icon = "📋";
-        
-        logDiv.innerHTML = `
-          <div class="log-header">
-            <span class="log-icon">${icon}</span>
-            <span class="log-usuario">${log.usuario}</span>
-            <span class="log-data">📅 ${log.data}</span>
-          </div>
-          <div class="log-acao">${log.acao}</div>
-          <div class="log-detalhes">${log.detalhes}</div>
-        `;
-        
-        logsContainer.appendChild(logDiv);
-      });
-      
-      // Contador de logs
-      const logCount = document.getElementById("logCount");
-      if (logCount) {
-        logCount.textContent = `${logsArray.length} logs registrados`;
-      }
-    });
-  }
-};
 
 // ================= LOADER =================
 window.onload = () => {
   setTimeout(() => loader.style.display = "none", 1200);
-  // Carrega logs se estiver na tela de admin
-  Logger.render();
 };
 
 // ================= TOAST =================
@@ -171,11 +88,8 @@ const UI = {
     document.getElementById(id).classList.add("active");
     document.querySelectorAll(".menu div").forEach(m => m.classList.remove("active"));
     el.classList.add("active");
-    
-    // Recarrega logs quando entrar na tela de admin
-    if (id === "admin" && isAdmin) {
-      Logger.render();
-    }
+    if (id === "admin" && isAdmin) Logger.render();
+    if (id === "scorers") Stats.render();
   }
 };
 
@@ -183,7 +97,147 @@ const UI = {
 const playersRef = db.ref("players");
 const matchesRef = db.ref("matches");
 const lineupRef = db.ref("lineup");
-const logsRef = db.ref("logs");
+
+// ================= SISTEMA DE ESTATÍSTICAS =================
+const Stats = {
+  // Dados de estatísticas
+  data: {},
+  
+  // Processa todas as partidas e gera estatísticas
+  processMatches(matches) {
+    // Reset estatísticas
+    this.data = {};
+    
+    if (!matches) return;
+    
+    Object.values(matches).forEach(match => {
+      // Processa GOLS
+      if (match.gols) {
+        const golsLines = match.gols.split("\n");
+        golsLines.forEach(line => {
+          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+)/);
+          if (nomeMatch) {
+            const nome = nomeMatch[1];
+            this.addStat(nome, "gols", 1);
+          }
+        });
+      }
+      
+      // Processa ASSISTÊNCIAS
+      if (match.assistencias) {
+        const assistLines = match.assistencias.split("\n");
+        assistLines.forEach(line => {
+          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+)/);
+          if (nomeMatch) {
+            const nome = nomeMatch[1];
+            this.addStat(nome, "assistencias", 1);
+          }
+        });
+      }
+      
+      // Processa DEFESAS
+      if (match.defesas) {
+        const defesasLines = match.defesas.split("\n");
+        defesasLines.forEach(line => {
+          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+)/);
+          const qtdMatch = line.match(/(\d+)\s*defesas/);
+          if (nomeMatch) {
+            const nome = nomeMatch[1];
+            const qtd = qtdMatch ? parseInt(qtdMatch[1]) : 1;
+            this.addStat(nome, "defesas", qtd);
+          }
+        });
+      }
+      
+      // Processa MVP
+      if (match.mvp) {
+        this.addStat(match.mvp, "mvps", 1);
+      }
+      
+      // Processa MENÇÕES
+      if (match.menc1) this.addStat(match.menc1, "mensoes", 1);
+      if (match.menc2) this.addStat(match.menc2, "mensoes", 1);
+      if (match.menc3) this.addStat(match.menc3, "mensoes", 1);
+    });
+  },
+  
+  addStat(nome, tipo, valor) {
+    if (!this.data[nome]) {
+      this.data[nome] = {
+        gols: 0,
+        assistencias: 0,
+        defesas: 0,
+        mvps: 0,
+        mensoes: 0,
+        totalParticipacoes: 0
+      };
+    }
+    this.data[nome][tipo] += valor;
+    this.data[nome].totalParticipacoes = 
+      this.data[nome].gols + 
+      this.data[nome].assistencias + 
+      this.data[nome].defesas;
+  },
+  
+  render() {
+    const container = document.getElementById("statsList");
+    if (!container) return;
+    
+    // Busca partidas para processar
+    matchesRef.once("value", (snap) => {
+      this.processMatches(snap.val());
+      
+      if (Object.keys(this.data).length === 0) {
+        container.innerHTML = '<div class="no-stats">📊 Nenhuma estatística disponível ainda. Adicione partidas!</div>';
+        return;
+      }
+      
+      // Ordena por gols
+      const sorted = Object.entries(this.data).sort((a,b) => b[1].gols - a[1].gols);
+      
+      container.innerHTML = "";
+      sorted.forEach(([nome, stats], index) => {
+        container.innerHTML += `
+        <div class="stats-card">
+          <div class="stats-rank">${index + 1}º</div>
+          <div class="stats-player-info">
+            <div class="stats-player-name">${nome}</div>
+          </div>
+          <div class="stats-numbers">
+            <div class="stat-item">
+              <span class="stat-icon">⚽</span>
+              <span class="stat-value">${stats.gols}</span>
+              <span class="stat-label">Gols</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">👟</span>
+              <span class="stat-value">${stats.assistencias}</span>
+              <span class="stat-label">Assist.</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">🧤</span>
+              <span class="stat-value">${stats.defesas}</span>
+              <span class="stat-label">Defesas</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">🏆</span>
+              <span class="stat-value">${stats.mvps}</span>
+              <span class="stat-label">MVP</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-icon">📋</span>
+              <span class="stat-value">${stats.mensoes}</span>
+              <span class="stat-label">Menções</span>
+            </div>
+          </div>
+          <div class="stats-total">
+            <span>🎯 Participações: ${stats.totalParticipacoes}</span>
+          </div>
+        </div>`;
+      });
+    });
+  }
+};
 
 // ================= PLAYERS =================
 const Player = {
@@ -192,7 +246,6 @@ const Player = {
       Toast.show("Digite o nome do jogador!");
       return;
     }
-    
     let player = {
       nome: nome.value,
       img: img.value || "https://via.placeholder.com/150?text=Jogador",
@@ -204,13 +257,10 @@ const Player = {
       def: def.value || "0",
       phy: phy.value || "0"
     };
-
     playersRef.push(player).then(() => {
-      // Registra log
       Logger.add("➕ Adicionou Jogador", `Nome: ${player.nome} | OVR: ${player.ovr}`);
-      Toast.show("Jogador salvo online!");
+      Toast.show("Jogador salvo!");
     });
-    
     nome.value = "";
     img.value = "";
     ovr.value = "";
@@ -228,26 +278,25 @@ const Player = {
       .sort((a,b)=>b.ovr - a.ovr)
       .forEach(p => {
         playersList.innerHTML += `
-        <div class="card">
+        <div class="player-card-full">
           <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
           <h3>${p.nome}</h3>
-          <p>OVR ${p.ovr}</p>
-          <div class="player-attrs">
-            <span>⚡${p.pac}</span>
-            <span>🎯${p.sho}</span>
-            <span>🎯${p.pas}</span>
-            <span>💫${p.dri}</span>
-            <span>🛡️${p.def}</span>
-            <span>💪${p.phy}</span>
+          <div class="player-ovr">OVR ${p.ovr}</div>
+          <div class="player-attrs-grid">
+            <div class="attr-item"><span>⚡</span> Ritmo: ${p.pac}</div>
+            <div class="attr-item"><span>🎯</span> Chute: ${p.sho}</div>
+            <div class="attr-item"><span>🎯</span> Passe: ${p.pas}</div>
+            <div class="attr-item"><span>💫</span> Drible: ${p.dri}</div>
+            <div class="attr-item"><span>🛡️</span> Defesa: ${p.def}</div>
+            <div class="attr-item"><span>💪</span> Físico: ${p.phy}</div>
           </div>
         </div>`;
       });
   }
 };
 
-// ================= MATCHES COMPLETO COM DATA/HORA =================
+// ================= MATCHES =================
 const Match = {
-  
   formatGols(input) {
     if (!input.trim()) return "";
     let lines = input.split("\n");
@@ -338,7 +387,6 @@ const Match = {
       return;
     }
     
-    // Formata a data e hora
     let dataPartida = "";
     if (partidaData.value) {
       const dataObj = new Date(partidaData.value);
@@ -346,14 +394,8 @@ const Match = {
       const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
       const ano = dataObj.getFullYear();
       const dataFormatada = `${dia}/${mes}/${ano}`;
-      
-      if (partidaHora.value) {
-        dataPartida = `${dataFormatada} - ${partidaHora.value}`;
-      } else {
-        dataPartida = dataFormatada;
-      }
+      dataPartida = partidaHora.value ? `${dataFormatada} - ${partidaHora.value}` : dataFormatada;
     } else {
-      // Se não escolher data, usa a data atual
       const agora = new Date();
       const dia = agora.getDate().toString().padStart(2, '0');
       const mes = (agora.getMonth() + 1).toString().padStart(2, '0');
@@ -385,11 +427,11 @@ const Match = {
     };
 
     matchesRef.push(match).then(() => {
-      Logger.add("⚽ Adicionou Partida", `${match.timeA} ${match.placar} ${match.timeB} | ${match.dataPartida} | MVP: ${match.mvp || "Não definido"}`);
+      Logger.add("⚽ Adicionou Partida", `${match.timeA} ${match.placar} ${match.timeB} | ${match.dataPartida}`);
       Toast.show("Partida salva!");
+      Stats.processMatches(match);
     });
     
-    // Limpa os campos
     timeA.value = "";
     timeB.value = "";
     timeALogo.value = "";
@@ -412,107 +454,62 @@ const Match = {
   render(data) {
     matchesList.innerHTML = "";
     tableList.innerHTML = "";
-    scorersList.innerHTML = "";
-
-    let tabela = {};
-    let artilharia = {};
     
-    // Ordena partidas por timestamp (mais recentes primeiro)
+    let tabela = {};
     const partidasArray = Object.entries(data || {}).sort((a,b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
 
     partidasArray.forEach(([key, m]) => {
       matchesList.innerHTML += `
       <div class="match-full-card">
-        <!-- Header com logo da liga e data -->
         <div class="match-header">
           <div class="match-liga-info">
-            ${m.ligaLogo ? `<img src="${m.ligaLogo}" class="liga-logo" alt="Liga">` : '<div class="liga-logo-placeholder">🏆</div>'}
+            ${m.ligaLogo ? `<img src="${m.ligaLogo}" class="liga-logo">` : '<div class="liga-logo-placeholder">🏆</div>'}
             <span class="match-type">${m.tipoPartida === 'liga' ? '🏆 PARTIDA DE LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span>
           </div>
           <div class="match-date-time">
-            <span class="match-date-icon">📅</span>
-            <span class="match-date-value">${m.dataPartida || "Data não informada"}</span>
+            <span>📅 ${m.dataPartida || "Data não informada"}</span>
           </div>
         </div>
         
-        <!-- Times e Placar -->
         <div class="match-teams-container">
           <div class="match-team-box">
             <div class="team-logo-wrapper">
-              ${m.timeALogo ? `<img src="${m.timeALogo}" class="team-logo-big" alt="${m.timeA}">` : '<div class="team-logo-placeholder">⚽</div>'}
+              ${m.timeALogo ? `<img src="${m.timeALogo}" class="team-logo-big">` : '<div class="team-logo-placeholder">⚽</div>'}
             </div>
             <h3 class="team-name-big">${m.timeA}</h3>
           </div>
           <div class="match-score-big">${m.placar}</div>
           <div class="match-team-box">
             <div class="team-logo-wrapper">
-              ${m.timeBLogo ? `<img src="${m.timeBLogo}" class="team-logo-big" alt="${m.timeB}">` : '<div class="team-logo-placeholder">⚽</div>'}
+              ${m.timeBLogo ? `<img src="${m.timeBLogo}" class="team-logo-big">` : '<div class="team-logo-placeholder">⚽</div>'}
             </div>
             <h3 class="team-name-big">${m.timeB}</h3>
           </div>
         </div>
         
-        <!-- Estatísticas -->
         <div class="match-stats-grid">
-          ${m.gols ? `
-          <div class="stat-section">
-            <div class="stat-title">⚽ GOLS</div>
-            <div class="stat-content">${m.gols.replace(/\n/g, '<br>')}</div>
-          </div>
-          ` : ''}
-          
-          ${m.assistencias ? `
-          <div class="stat-section">
-            <div class="stat-title">👟 ASSISTÊNCIAS</div>
-            <div class="stat-content">${m.assistencias.replace(/\n/g, '<br>')}</div>
-          </div>
-          ` : ''}
-          
-          ${m.defesas ? `
-          <div class="stat-section">
-            <div class="stat-title">🧤 DEFESAS</div>
-            <div class="stat-content">${m.defesas.replace(/\n/g, '<br>')}</div>
-          </div>
-          ` : ''}
-          
-          ${m.cartoes ? `
-          <div class="stat-section">
-            <div class="stat-title">🟨🟥 CARTÕES</div>
-            <div class="stat-content">${m.cartoes.replace(/\n/g, '<br>')}</div>
-          </div>
-          ` : ''}
+          ${m.gols ? `<div class="stat-section"><div class="stat-title">⚽ GOLS</div><div class="stat-content">${m.gols.replace(/\n/g, '<br>')}</div></div>` : ''}
+          ${m.assistencias ? `<div class="stat-section"><div class="stat-title">👟 ASSISTÊNCIAS</div><div class="stat-content">${m.assistencias.replace(/\n/g, '<br>')}</div></div>` : ''}
+          ${m.defesas ? `<div class="stat-section"><div class="stat-title">🧤 DEFESAS</div><div class="stat-content">${m.defesas.replace(/\n/g, '<br>')}</div></div>` : ''}
+          ${m.cartoes ? `<div class="stat-section"><div class="stat-title">🟨🟥 CARTÕES</div><div class="stat-content">${m.cartoes.replace(/\n/g, '<br>')}</div></div>` : ''}
         </div>
         
-        <!-- MVPs e Menções -->
         <div class="match-awards">
-          ${m.mvp ? `
-          <div class="mvp-section">
-            <div class="mvp-title">🏆 MELHOR DA PARTIDA (MVP)</div>
-            <div class="mvp-name">⭐ ${m.mvp}</div>
-          </div>
-          ` : ''}
-          
+          ${m.mvp ? `<div class="mvp-section"><div class="mvp-title">🏆 MVP</div><div class="mvp-name">⭐ ${m.mvp}</div></div>` : ''}
           ${(m.menc1 || m.menc2 || m.menc3) ? `
           <div class="mentions-section">
-            <div class="mentions-title">📋 MENÇÕES HONROSAS</div>
+            <div class="mentions-title">📋 MENÇÕES</div>
             <div class="mentions-list">
-              ${m.menc1 ? `<div class="mention-item">🥇 ${m.menc1}</div>` : ''}
-              ${m.menc2 ? `<div class="mention-item">🥈 ${m.menc2}</div>` : ''}
-              ${m.menc3 ? `<div class="mention-item">🥉 ${m.menc3}</div>` : ''}
+              ${m.menc1 ? `<div>🥇 ${m.menc1}</div>` : ''}
+              ${m.menc2 ? `<div>🥈 ${m.menc2}</div>` : ''}
+              ${m.menc3 ? `<div>🥉 ${m.menc3}</div>` : ''}
             </div>
-          </div>
-          ` : ''}
+          </div>` : ''}
         </div>
         
-        ${m.observacoes ? `
-        <div class="match-observations">
-          <div class="obs-title">📝 OBSERVAÇÕES</div>
-          <div class="obs-content">${m.observacoes}</div>
-        </div>
-        ` : ''}
+        ${m.observacoes ? `<div class="match-observations"><div class="obs-title">📝 OBSERVAÇÕES</div><div class="obs-content">${m.observacoes}</div></div>` : ''}
       </div>`;
 
-      // Cálculo da tabela (continua igual)
       let [g1, g2] = (m.placar || "0x0").split("x").map(Number);
       tabela[m.timeA] = tabela[m.timeA] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
       tabela[m.timeB] = tabela[m.timeB] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
@@ -536,45 +533,18 @@ const Match = {
         tabela[m.timeA].empates += 1;
         tabela[m.timeB].empates += 1;
       }
-
-      // Artilharia
-      if (m.gols) {
-        let golsLines = m.gols.split("\n");
-        golsLines.forEach(line => {
-          let matchNome = line.match(/([a-zA-ZÀ-ÿ]+)/);
-          if (matchNome) {
-            let nome = matchNome[1];
-            artilharia[nome] = (artilharia[nome] || 0) + 1;
-          }
-        });
-      }
     });
 
-    // Renderiza tabela
-    Object.entries(tabela)
-      .sort((a,b) => b[1].pontos - a[1].pontos)
-      .forEach((t, index) => {
-        tableList.innerHTML += `
-        <div class="table-card">
-          <div class="table-position">${index + 1}º</div>
-          <div class="table-team">${t[0]}</div>
-          <div class="table-stats">${t[1].vitorias}V/${t[1].empates}E/${t[1].derrotas}D</div>
-          <div class="table-goals">${t[1].golsPro}:${t[1].golsContra}</div>
-          <div class="table-points">${t[1].pontos} pts</div>
-        </div>`;
-      });
-
-    // Renderiza artilharia
-    Object.entries(artilharia)
-      .sort((a,b) => b[1] - a[1])
-      .forEach((a, index) => {
-        scorersList.innerHTML += `
-        <div class="scorer-card">
-          <div class="scorer-position">${index + 1}º</div>
-          <div class="scorer-name">${a[0]}</div>
-          <div class="scorer-goals">⚽ ${a[1]}</div>
-        </div>`;
-      });
+    Object.entries(tabela).sort((a,b) => b[1].pontos - a[1].pontos).forEach((t, index) => {
+      tableList.innerHTML += `
+      <div class="table-card">
+        <div class="table-position">${index + 1}º</div>
+        <div class="table-team">${t[0]}</div>
+        <div class="table-stats">${t[1].vitorias}V/${t[1].empates}E/${t[1].derrotas}D</div>
+        <div class="table-goals">${t[1].golsPro}:${t[1].golsContra}</div>
+        <div class="table-points">${t[1].pontos} pts</div>
+      </div>`;
+    });
   }
 };
 
@@ -599,7 +569,6 @@ const Lineup = {
   render(data) {
     field.innerHTML = "";
     if (!data) return;
-
     Object.entries(data).forEach(([id, p]) => {
       let el = document.createElement("div");
       el.className = "player";
@@ -658,51 +627,97 @@ const Lineup = {
   }
 };
 
-// ================= REALTIME LISTENERS =================
-playersRef.on("value", snap => {
-  Player.render(snap.val());
-});
+// ================= LOGGER =================
+const Logger = {
+  add(action, details) {
+    if (!currentUser) return;
+    db.ref("logs").push({
+      usuario: currentUser,
+      acao: action,
+      detalhes: details,
+      data: new Date().toLocaleString(),
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+  },
+  
+  render() {
+    const logsContainer = document.getElementById("logsList");
+    if (!logsContainer) return;
+    db.ref("logs").orderByChild("timestamp").once("value", (snap) => {
+      logsContainer.innerHTML = "";
+      const logs = snap.val();
+      if (!logs) {
+        logsContainer.innerHTML = '<div class="no-logs">📭 Nenhum log registrado</div>';
+        return;
+      }
+      const logsArray = Object.entries(logs).sort((a,b) => b[1].timestamp - a[1].timestamp);
+      logsArray.forEach(([id, log]) => {
+        let icon = "📝";
+        if (log.acao.includes("Jogador")) icon = "👤";
+        if (log.acao.includes("Partida")) icon = "⚽";
+        if (log.acao.includes("Reset")) icon = "⚠️";
+        logsContainer.innerHTML += `
+        <div class="log-item">
+          <div class="log-header">
+            <span class="log-icon">${icon}</span>
+            <span class="log-usuario">${log.usuario}</span>
+            <span class="log-data">📅 ${log.data}</span>
+          </div>
+          <div class="log-acao">${log.acao}</div>
+          <div class="log-detalhes">${log.detalhes}</div>
+        </div>`;
+      });
+      const logCount = document.getElementById("logCount");
+      if (logCount) logCount.textContent = `${logsArray.length} logs`;
+    });
+  }
+};
 
-matchesRef.on("value", snap => {
-  Match.render(snap.val());
-});
-
-lineupRef.on("value", snap => {
-  Lineup.render(snap.val());
-});
-
-// ================= SYSTEM (Reset modificado para NÃO apagar logs) =================
+// ================= SYSTEM =================
 const System = {
   reset() {
     if(!isAdmin) {
       Toast.show("Você não tem permissão!");
       return;
     }
-    
     if(confirm("⚠️ ATENÇÃO! Isso vai apagar TODOS OS DADOS exceto os LOGS. Tem certeza?")) {
-      // Remove apenas players, matches e lineup, mantém logs
       playersRef.set(null);
       matchesRef.set(null);
       lineupRef.set(null);
-      
-      // Registra log antes de limpar
-      Logger.add("⚠️ Reset Total", "Todos os dados foram apagados (players, matches, lineup)");
-      
+      Logger.add("⚠️ Reset Total", "Todos os dados foram apagados");
       Toast.show("Dados resetados! Logs mantidos.");
       setTimeout(() => location.reload(), 1500);
     }
   }
 };
 
+// ================= REALTIME LISTENERS =================
+playersRef.on("value", snap => Player.render(snap.val()));
+matchesRef.on("value", snap => {
+  Match.render(snap.val());
+  Stats.processMatches(snap.val());
+});
+lineupRef.on("value", snap => Lineup.render(snap.val()));
+
 // ================= SEARCH =================
 const searchPlayer = document.getElementById("searchPlayer");
 if (searchPlayer) {
   searchPlayer.addEventListener("input", (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const cards = document.querySelectorAll("#playersList .card");
-    cards.forEach(card => {
+    const term = e.target.value.toLowerCase();
+    document.querySelectorAll("#playersList .player-card-full").forEach(card => {
       const nome = card.querySelector("h3")?.innerText.toLowerCase() || "";
-      card.style.display = nome.includes(searchTerm) ? "block" : "none";
+      card.style.display = nome.includes(term) ? "block" : "none";
+    });
+  });
+}
+
+const searchStats = document.getElementById("searchStats");
+if (searchStats) {
+  searchStats.addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase();
+    document.querySelectorAll("#statsList .stats-card").forEach(card => {
+      const nome = card.querySelector(".stats-player-name")?.innerText.toLowerCase() || "";
+      card.style.display = nome.includes(term) ? "flex" : "none";
     });
   });
 }
