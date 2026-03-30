@@ -20,6 +20,26 @@
 
 <body>
 
+  <!-- ================= LOADER ================= -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <h2>Conectando ao servidor...</h2>
+  </div>
+
+  <!-- ================= FORÇA O LOADER A SUMIR ================= -->
+  <script>
+    // FORÇA O LOADER A SUMIR EM 0.5 SEGUNDOS
+    setTimeout(function() {
+      var loaderDiv = document.getElementById("loader");
+      if (loaderDiv) {
+        loaderDiv.style.display = "none";
+        console.log("Loader removido com sucesso!");
+      } else {
+        console.log("Loader não encontrado!");
+      }
+    }, 500);
+  </script>
+
   <script>
   // Força o loader a sumir após 1 segundo (independente de outros scripts)
   setTimeout(function() {
