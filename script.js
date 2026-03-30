@@ -117,6 +117,74 @@ function encontrarJogador(nomeDigitado) {
   return null;
 }
 
+// ================= NOTÍCIAS =================
+const News = {
+  add() {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores podem adicionar notícias!"); return; }
+    
+    let title = document.getElementById("newsTitle").value.trim();
+    let image = document.getElementById("newsImage").value.trim();
+    let desc = document.getElementById("newsDesc").value.trim();
+    
+    if (!title) { Toast.show("Digite o título da notícia!"); return; }
+    if (!desc) { Toast.show("Digite a descrição da notícia!"); return; }
+    
+    const newsRef = db.ref("news");
+    newsRef.push({
+      titulo: title,
+      imagem: image || "https://via.placeholder.com/400x200?text=Sem+Imagem",
+      descricao: desc,
+      data: new Date().toLocaleString(),
+      timestamp: Date.now()
+    }).then(() => {
+      Logger.add("📰 Adicionou Notícia", `Título: ${title}`);
+      Toast.show("Notícia publicada!");
+    });
+    
+    document.getElementById("newsTitle").value = "";
+    document.getElementById("newsImage").value = "";
+    document.getElementById("newsDesc").value = "";
+  },
+  
+  render(data) {
+    let container = document.getElementById("newsList");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    if (!data) {
+      container.innerHTML = '<div class="no-news">📭 Nenhuma notícia publicada ainda</div>';
+      return;
+    }
+    
+    let noticias = [];
+    for (let id in data) {
+      noticias.push({ id: id, dados: data[id] });
+    }
+    noticias.sort((a, b) => (b.dados.timestamp || 0) - (a.dados.timestamp || 0));
+    
+    for (let i = 0; i < noticias.length; i++) {
+      let n = noticias[i].dados;
+      container.innerHTML += `
+      <div class="news-card">
+        <div class="news-image">
+          <img src="${n.imagem}" onerror="this.src='https://via.placeholder.com/400x200?text=Imagem+não+disponível'">
+        </div>
+        <div class="news-content">
+          <div class="news-header">
+            <h3 class="news-title">${n.titulo}</h3>
+            <span class="news-date">📅 ${n.data || "Data não informada"}</span>
+          </div>
+          <p class="news-description">${n.descricao}</p>
+        </div>
+      </div>`;
+    }
+  }
+};
+
+// Adicione este listener no final do arquivo, junto com os outros listeners:
+const newsRef = db.ref("news");
+newsRef.on("value", snap => News.render(snap.val()));
+
 // ================= ESTATÍSTICAS =================
 const Stats = {
   data: {},
