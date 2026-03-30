@@ -302,8 +302,11 @@ const Stats = {
   }
 };
 
-// ================= PLAYERS =================
+// ================= PLAYERS (com edição e exclusão) =================
 const Player = {
+  // Armazena o ID do jogador sendo editado
+  currentEditId: null,
+  
   add() {
     if (!nome.value.trim()) {
       Toast.show("Digite o nome do jogador!");
@@ -324,6 +327,72 @@ const Player = {
       Logger.add("➕ Adicionou Jogador", `Nome: ${player.nome} | OVR: ${player.ovr}`);
       Toast.show("Jogador salvo!");
     });
+    this.clearForm();
+  },
+  
+  // Abre o modal com os dados do jogador para edição
+  edit(id, jogador) {
+    this.currentEditId = id;
+    document.getElementById("editId").value = id;
+    document.getElementById("editNome").value = jogador.nome || "";
+    document.getElementById("editImg").value = jogador.img || "";
+    document.getElementById("editOvr").value = jogador.ovr || 0;
+    document.getElementById("editPac").value = jogador.pac || "0";
+    document.getElementById("editSho").value = jogador.sho || "0";
+    document.getElementById("editPas").value = jogador.pas || "0";
+    document.getElementById("editDri").value = jogador.dri || "0";
+    document.getElementById("editDef").value = jogador.def || "0";
+    document.getElementById("editPhy").value = jogador.phy || "0";
+    
+    document.getElementById("editModal").classList.add("active");
+  },
+  
+  // Salva as alterações do jogador
+  update() {
+    const id = document.getElementById("editId").value;
+    if (!id) return;
+    
+    const jogadorAtualizado = {
+      nome: document.getElementById("editNome").value,
+      img: document.getElementById("editImg").value || "https://via.placeholder.com/150?text=Jogador",
+      ovr: parseInt(document.getElementById("editOvr").value) || 0,
+      pac: document.getElementById("editPac").value || "0",
+      sho: document.getElementById("editSho").value || "0",
+      pas: document.getElementById("editPas").value || "0",
+      dri: document.getElementById("editDri").value || "0",
+      def: document.getElementById("editDef").value || "0",
+      phy: document.getElementById("editPhy").value || "0"
+    };
+    
+    playersRef.child(id).update(jogadorAtualizado).then(() => {
+      Logger.add("✏️ Editou Jogador", `Nome: ${jogadorAtualizado.nome} | OVR: ${jogadorAtualizado.ovr}`);
+      Toast.show("Jogador atualizado!");
+      this.closeModal();
+    });
+  },
+  
+  // Exclui o jogador
+  delete() {
+    const id = document.getElementById("editId").value;
+    if (!id) return;
+    
+    if(confirm("⚠️ Tem certeza que deseja excluir este jogador? Esta ação não pode ser desfeita!")) {
+      playersRef.child(id).remove().then(() => {
+        Logger.add("🗑️ Excluiu Jogador", `ID: ${id}`);
+        Toast.show("Jogador excluído!");
+        this.closeModal();
+      });
+    }
+  },
+  
+  // Fecha o modal
+  closeModal() {
+    document.getElementById("editModal").classList.remove("active");
+    this.currentEditId = null;
+  },
+  
+  // Limpa o formulário de adicionar
+  clearForm() {
     nome.value = "";
     img.value = "";
     ovr.value = "";
@@ -339,9 +408,11 @@ const Player = {
     playersList.innerHTML = "";
     Object.values(data || {})
       .sort((a,b)=>b.ovr - a.ovr)
-      .forEach(p => {
+      .forEach((p, index) => {
+        // Encontra o ID do jogador
+        const jogadorId = Object.keys(data)[Object.values(data).indexOf(p)];
         playersList.innerHTML += `
-        <div class="player-card-full">
+        <div class="player-card-full" onclick="Player.edit('${jogadorId}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">
           <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
           <h3>${p.nome}</h3>
           <div class="player-ovr">OVR ${p.ovr}</div>
@@ -353,10 +424,16 @@ const Player = {
             <div class="attr-item"><span>🛡️</span> Defesa: ${p.def}</div>
             <div class="attr-item"><span>💪</span> Físico: ${p.phy}</div>
           </div>
+          <div class="edit-badge">✏️ Clique para editar</div>
         </div>`;
       });
   }
 };
+
+// Funções globais para o modal
+function closeEditModal() {
+  Player.closeModal();
+}
 
 // ================= MATCHES =================
 const Match = {
