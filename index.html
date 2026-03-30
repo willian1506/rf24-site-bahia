@@ -93,7 +93,7 @@
 <!-- ================= PARTIDAS ================= -->
 <section id="matches" class="screen">
   <h2>📊 Partidas</h2>
-  <div id="matchesList" class="list"></div>
+  <div id="matchesList" class="matches-container"></div>
 </section>
 
 <!-- ================= TABELA ================= -->
@@ -144,10 +144,22 @@
     <button onclick="Player.add()">Adicionar Jogador</button>
   </div>
 
-  <!-- PARTIDA -->
+  <!-- PARTIDA COMPLETA -->
   <div class="admin-box">
     <h3>Adicionar Partida</h3>
 
+    <!-- Logo da Liga -->
+    <div style="margin-bottom: 10px;">
+      <label style="font-size: 12px; opacity: 0.8;">🏆 Logo da Liga / Tipo</label>
+      <input id="ligaLogo" placeholder="URL da logo da liga">
+      <select id="tipoPartida" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;">
+        <option value="liga">🏆 Partida de Liga</option>
+        <option value="amistoso">🤝 Amistoso</option>
+        <option value="copa">🏅 Copa</option>
+      </select>
+    </div>
+
+    <!-- Times -->
     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
       <div style="flex: 1;">
         <label style="font-size: 12px; opacity: 0.8;">Time A</label>
@@ -162,15 +174,44 @@
     </div>
     
     <input id="placar" placeholder="Placar (ex: 2x1)">
-    <input id="gols" placeholder="Artilheiro da partida (ex: Jogador:2)">
     
-    <button onclick="Match.add()">Adicionar Partida</button>
+    <!-- Gols -->
+    <textarea id="golsList" placeholder="GOLS (ex: Willian⚽ 15'&#10;Stormy⚽ 32'&#10;Mkz⚽ 67')" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    
+    <!-- Assistências -->
+    <textarea id="assistsList" placeholder="ASSISTÊNCIAS (ex: Willian👟 15'&#10;Stormy👟 32')" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    
+    <!-- Defesas de Goleiro -->
+    <textarea id="defesasList" placeholder="DEFESAS (ex: Goleiro🧤 5 defesas&#10;Goleiro🧤 3 defesas)" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    
+    <!-- Cartões -->
+    <textarea id="cartoesList" placeholder="CARTÕES (ex: Jogador🟨 30'&#10;Jogador🟥 75')" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    
+    <!-- Melhor da Partida -->
+    <div style="margin: 10px 0;">
+      <label style="font-size: 12px; opacity: 0.8;">🏆 Melhor da Partida (MVP)</label>
+      <input id="mvp" placeholder="Nome do jogador">
+    </div>
+    
+    <!-- Menções -->
+    <div style="margin: 10px 0;">
+      <label style="font-size: 12px; opacity: 0.8;">🥇 1ª Menção</label>
+      <input id="men1" placeholder="Nome do jogador">
+      <label style="font-size: 12px; opacity: 0.8;">🥈 2ª Menção</label>
+      <input id="men2" placeholder="Nome do jogador">
+      <label style="font-size: 12px; opacity: 0.8;">🥉 3ª Menção</label>
+      <input id="men3" placeholder="Nome do jogador">
+    </div>
+    
+    <!-- Observações -->
+    <textarea id="obsPartida" placeholder="📝 OBSERVAÇÕES DA PARTIDA" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    
+    <button onclick="Match.add()">✅ Adicionar Partida</button>
   </div>
 
   <!-- ESCALAÇÃO -->
   <div class="admin-box">
     <h3>Escalação</h3>
-
     <input id="pNome" placeholder="Nome do jogador">
     <button onclick="Lineup.add()">Adicionar ao campo</button>
   </div>
