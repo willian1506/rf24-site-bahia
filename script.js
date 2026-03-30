@@ -375,239 +375,114 @@ const Player = {
     }
   }
 };
-
-// ================= MATCHES =================
-const Match = {
-  formatGols(input) {
-    if (!input || !input.trim()) return "";
-    return input.split("\n").map(line => {
-      let parts = line.trim().split(/\s+/);
-      return parts.length >= 2 ? `${parts[0]}⚽ ${parts[1]}'` : `${parts[0]}⚽`;
-    }).join("\n");
-  },
-  formatAssists(input) {
-    if (!input || !input.trim()) return "";
-    return input.split("\n").map(line => {
-      let parts = line.trim().split(/\s+/);
-      return parts.length >= 2 ? `${parts[0]}👟 ${parts[1]}'` : `${parts[0]}👟`;
-    }).join("\n");
-  },
-  formatDefesas(input) {
-    if (!input || !input.trim()) return "";
-    return input.split("\n").map(line => {
-      let parts = line.trim().split(/\s+/);
-      return parts.length >= 2 ? `${parts[0]}🧤 ${parts[1]} defesas` : `${parts[0]}🧤`;
-    }).join("\n");
-  },
-  formatCartoes(input) {
-    if (!input || !input.trim()) return "";
-    return input.split("\n").map(line => {
-      let parts = line.trim().split(/\s+/);
-      if (parts.length >= 3) {
-        let emoji = parts[2].toLowerCase().includes("vermelho") ? "🟥" : "🟨";
-        return `${parts[0]}${emoji} ${parts[1]}'`;
-      }
-      return parts.length >= 2 ? `${parts[0]}🟨 ${parts[1]}'` : `${parts[0]}🟨`;
-    }).join("\n");
-  },
+render(data) {
+  let matchesContainer = document.getElementById("matchesList");
+  let tableContainer = document.getElementById("tableList");
+  if (!matchesContainer || !tableContainer) return;
+  matchesContainer.innerHTML = "";
+  tableContainer.innerHTML = "";
+  let tabela = {};
   
-  add() {
-    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
-    let timeA = document.getElementById("timeA");
-    let timeB = document.getElementById("timeB");
-    if (!timeA.value || !timeB.value) { Toast.show("Preencha os times!"); return; }
+  if (!data) return;
+  for (let key in data) {
+    let m = data[key];
+    const editButton = isAdmin ? `<button class="match-edit-btn" onclick="Match.edit('${key}', ${JSON.stringify(m).replace(/"/g, '&quot;')})">✏️ Editar</button>` : '';
+    const lineupButton = isAdmin ? `<button class="match-lineup-btn" onclick="openMatchLineupModal('${key}')">📋 Escalação</button>` : '';
     
-    let dataPartida = "";
-    let partidaData = document.getElementById("partidaData");
-    let partidaHora = document.getElementById("partidaHora");
-    if (partidaData && partidaData.value) {
-      let d = new Date(partidaData.value);
-      dataPartida = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
-      if (partidaHora && partidaHora.value) dataPartida += ` - ${partidaHora.value}`;
+    matchesContainer.innerHTML += `
+    <div class="match-full-card">
+      <div class="match-header">
+        <div class="match-liga-info">${m.ligaLogo ? '<img src="' + m.ligaLogo + '" class="liga-logo">' : '<div class="liga-logo-placeholder">🏆</div>'}<span class="match-type">${m.tipoPartida === 'liga' ? '🏆 LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span></div>
+        <div class="match-date-time">📅 ${m.dataPartida || "Data não informada"} ${editButton} ${lineupButton}</div>
+      </div>
+      <div class="match-teams-container">
+        <div class="match-team-box"><div class="team-logo-wrapper">${m.timeALogo ? '<img src="' + m.timeALogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeA}</h3></div>
+        <div class="match-score-big">${m.placar}</div>
+        <div class="match-team-box"><div class="team-logo-wrapper">${m.timeBLogo ? '<img src="' + m.timeBLogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeB}</h3></div>
+      </div>
+      <div class="match-stats-grid">
+        ${m.gols ? '<div class="stat-section"><div class="stat-title">⚽ GOLS</div><div class="stat-content">' + m.gols.replace(/\n/g, '<br>') + '</div></div>' : ''}
+        ${m.assistencias ? '<div class="stat-section"><div class="stat-title">👟 ASSISTÊNCIAS</div><div class="stat-content">' + m.assistencias.replace(/\n/g, '<br>') + '</div></div>' : ''}
+        ${m.defesas ? '<div class="stat-section"><div class="stat-title">🧤 DEFESAS</div><div class="stat-content">' + m.defesas.replace(/\n/g, '<br>') + '</div></div>' : ''}
+        ${m.cartoes ? '<div class="stat-section"><div class="stat-title">🟨🟥 CARTÕES</div><div class="stat-content">' + m.cartoes.replace(/\n/g, '<br>') + '</div></div>' : ''}
+      </div>
+      <div class="match-awards">
+        ${m.mvp ? '<div class="mvp-section"><div class="mvp-title">🏆 MVP</div><div class="mvp-name">⭐ ' + m.mvp + '</div></div>' : ''}
+        ${(m.menc1 || m.menc2 || m.menc3) ? '<div class="mentions-section"><div class="mentions-title">📋 MENÇÕES</div><div class="mentions-list">' + (m.menc1 ? '<div>🥇 ' + m.menc1 + '</div>' : '') + (m.menc2 ? '<div>🥈 ' + m.menc2 + '</div>' : '') + (m.menc3 ? '<div>🥉 ' + m.menc3 + '</div>' : '') + '</div></div>' : ''}
+      </div>
+      ${m.observacoes ? '<div class="match-observations"><div class="obs-title">📝 OBSERVAÇÕES</div><div class="obs-content">' + m.observacoes + '</div></div>' : ''}
+      
+      ${m.lineup ? `
+      <div class="match-lineup-section">
+        <div class="match-lineup-header" onclick="toggleMatchLineup(this)">
+          <span>📋 Escalação da Partida</span>
+          <span class="toggle-icon">▼</span>
+        </div>
+        <div class="match-lineup-content" style="display: block;">
+          <div class="match-lineup-starters">
+            <h4>⚽ Titulares</h4>
+            <div class="match-lineup-players">${this.renderLineupPlayers(m.lineup.starters)}</div>
+          </div>
+          <div class="match-lineup-subs">
+            <h4>🔄 Reservas</h4>
+            <div class="match-lineup-players">${this.renderLineupPlayers(m.lineup.subs)}</div>
+          </div>
+          ${m.lineup.coach && m.lineup.coach.length ? `
+          <div class="match-lineup-coach">
+            <h4>📋 Técnico</h4>
+            <div class="match-lineup-players">${this.renderLineupPlayers(m.lineup.coach)}</div>
+          </div>` : ''}
+        </div>
+      </div>` : ''}
+    </div>`;
+    
+    let placarParts = (m.placar || "0x0").split("x");
+    let g1 = parseInt(placarParts[0]) || 0;
+    let g2 = parseInt(placarParts[1]) || 0;
+    
+    if (!tabela[m.timeA]) tabela[m.timeA] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
+    if (!tabela[m.timeB]) tabela[m.timeB] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
+    tabela[m.timeA].gp += g1;
+    tabela[m.timeA].gc += g2;
+    tabela[m.timeB].gp += g2;
+    tabela[m.timeB].gc += g1;
+    if (g1 > g2) {
+      tabela[m.timeA].p += 3;
+      tabela[m.timeA].v++;
+      tabela[m.timeB].d++;
+    } else if (g2 > g1) {
+      tabela[m.timeB].p += 3;
+      tabela[m.timeB].v++;
+      tabela[m.timeA].d++;
     } else {
-      let a = new Date();
-      dataPartida = `${a.getDate().toString().padStart(2, '0')}/${(a.getMonth() + 1).toString().padStart(2, '0')}/${a.getFullYear()} - ${a.getHours().toString().padStart(2, '0')}:${a.getMinutes().toString().padStart(2, '0')}`;
-    }
-    
-    matchesRef.push({
-      timeA: timeA.value, timeB: timeB.value,
-      timeALogo: document.getElementById("timeALogo").value || null,
-      timeBLogo: document.getElementById("timeBLogo").value || null,
-      ligaLogo: document.getElementById("ligaLogo").value || null,
-      tipoPartida: document.getElementById("tipoPartida").value,
-      placar: document.getElementById("placar").value || "0x0",
-      gols: this.formatGols(document.getElementById("golsList").value),
-      assistencias: this.formatAssists(document.getElementById("assistsList").value),
-      defesas: this.formatDefesas(document.getElementById("defesasList").value),
-      cartoes: this.formatCartoes(document.getElementById("cartoesList").value),
-      mvp: document.getElementById("mvp").value,
-      menc1: document.getElementById("men1").value,
-      menc2: document.getElementById("men2").value,
-      menc3: document.getElementById("men3").value,
-      observacoes: document.getElementById("obsPartida").value,
-      dataPartida: dataPartida,
-      timestamp: Date.now()
-    }).then(() => {
-      Logger.add("⚽ Adicionou Partida", `${timeA.value} ${document.getElementById("placar").value} ${timeB.value}`);
-      Toast.show("Partida salva!");
-    });
-    
-    timeA.value = timeB.value = "";
-    document.getElementById("timeALogo").value = "";
-    document.getElementById("timeBLogo").value = "";
-    document.getElementById("ligaLogo").value = "";
-    document.getElementById("placar").value = "";
-    document.getElementById("golsList").value = "";
-    document.getElementById("assistsList").value = "";
-    document.getElementById("defesasList").value = "";
-    document.getElementById("cartoesList").value = "";
-    document.getElementById("mvp").value = "";
-    document.getElementById("men1").value = "";
-    document.getElementById("men2").value = "";
-    document.getElementById("men3").value = "";
-    document.getElementById("obsPartida").value = "";
-    if (partidaData) partidaData.value = "";
-    if (partidaHora) partidaHora.value = "";
-  },
-  
-  edit(id, match) {
-    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
-    document.getElementById("editMatchId").value = id;
-    document.getElementById("editMatchTimeA").value = match.timeA || "";
-    document.getElementById("editMatchTimeB").value = match.timeB || "";
-    document.getElementById("editMatchPlacar").value = match.placar || "";
-    document.getElementById("editMatchGols").value = this.parseStats(match.gols);
-    document.getElementById("editMatchAssists").value = this.parseStats(match.assistencias);
-    document.getElementById("editMatchDefesas").value = this.parseStats(match.defesas);
-    document.getElementById("editMatchCartoes").value = this.parseStats(match.cartoes);
-    document.getElementById("editMatchMvp").value = match.mvp || "";
-    document.getElementById("editMatchModal").style.display = "flex";
-  },
-  
-  parseStats(input) {
-    if (!input) return "";
-    return input.split("\n").map(line => {
-      return line.replace(/[⚽👟🧤🟨🟥]/g, '').replace(/\s*'\s*/g, '').replace(/defesas/g, '').trim();
-    }).join("\n");
-  },
-  
-  update() {
-    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
-    let id = document.getElementById("editMatchId").value;
-    if (!id) return;
-    
-    let gols = document.getElementById("editMatchGols").value;
-    let assists = document.getElementById("editMatchAssists").value;
-    let defesas = document.getElementById("editMatchDefesas").value;
-    let cartoes = document.getElementById("editMatchCartoes").value;
-    
-    matchesRef.child(id).update({
-      timeA: document.getElementById("editMatchTimeA").value,
-      timeB: document.getElementById("editMatchTimeB").value,
-      placar: document.getElementById("editMatchPlacar").value,
-      gols: this.formatGols(gols),
-      assistencias: this.formatAssists(assists),
-      defesas: this.formatDefesas(defesas),
-      cartoes: this.formatCartoes(cartoes),
-      mvp: document.getElementById("editMatchMvp").value
-    }).then(() => {
-      Logger.add("✏️ Editou Partida", `ID: ${id}`);
-      Toast.show("Partida atualizada!");
-      this.closeModal();
-    });
-  },
-  
-  deleteMatch() {
-    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
-    let id = document.getElementById("editMatchId").value;
-    if (!id) return;
-    if (confirm("⚠️ Excluir esta partida?")) {
-      matchesRef.child(id).remove().then(() => {
-        Logger.add("🗑️ Excluiu Partida", `ID: ${id}`);
-        Toast.show("Partida excluída!");
-        this.closeModal();
-      });
-    }
-  },
-  
-  closeModal() {
-    document.getElementById("editMatchModal").style.display = "none";
-  },
-  
-  render(data) {
-    let matchesContainer = document.getElementById("matchesList");
-    let tableContainer = document.getElementById("tableList");
-    if (!matchesContainer || !tableContainer) return;
-    matchesContainer.innerHTML = "";
-    tableContainer.innerHTML = "";
-    let tabela = {};
-    
-    if (!data) return;
-    for (let key in data) {
-      let m = data[key];
-      const editButton = isAdmin ? `<button class="match-edit-btn" onclick="Match.edit('${key}', ${JSON.stringify(m).replace(/"/g, '&quot;')})">✏️ Editar</button>` : '';
-      
-      matchesContainer.innerHTML += `
-      <div class="match-full-card">
-        <div class="match-header">
-          <div class="match-liga-info">${m.ligaLogo ? '<img src="' + m.ligaLogo + '" class="liga-logo">' : '<div class="liga-logo-placeholder">🏆</div>'}<span class="match-type">${m.tipoPartida === 'liga' ? '🏆 LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span></div>
-          <div class="match-date-time">📅 ${m.dataPartida || "Data não informada"} ${editButton}</div>
-        </div>
-        <div class="match-teams-container">
-          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeALogo ? '<img src="' + m.timeALogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeA}</h3></div>
-          <div class="match-score-big">${m.placar}</div>
-          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeBLogo ? '<img src="' + m.timeBLogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeB}</h3></div>
-        </div>
-        <div class="match-stats-grid">
-          ${m.gols ? '<div class="stat-section"><div class="stat-title">⚽ GOLS</div><div class="stat-content">' + m.gols.replace(/\n/g, '<br>') + '</div></div>' : ''}
-          ${m.assistencias ? '<div class="stat-section"><div class="stat-title">👟 ASSISTÊNCIAS</div><div class="stat-content">' + m.assistencias.replace(/\n/g, '<br>') + '</div></div>' : ''}
-          ${m.defesas ? '<div class="stat-section"><div class="stat-title">🧤 DEFESAS</div><div class="stat-content">' + m.defesas.replace(/\n/g, '<br>') + '</div></div>' : ''}
-          ${m.cartoes ? '<div class="stat-section"><div class="stat-title">🟨🟥 CARTÕES</div><div class="stat-content">' + m.cartoes.replace(/\n/g, '<br>') + '</div></div>' : ''}
-        </div>
-        <div class="match-awards">
-          ${m.mvp ? '<div class="mvp-section"><div class="mvp-title">🏆 MVP</div><div class="mvp-name">⭐ ' + m.mvp + '</div></div>' : ''}
-          ${(m.menc1 || m.menc2 || m.menc3) ? '<div class="mentions-section"><div class="mentions-title">📋 MENÇÕES</div><div class="mentions-list">' + (m.menc1 ? '<div>🥇 ' + m.menc1 + '</div>' : '') + (m.menc2 ? '<div>🥈 ' + m.menc2 + '</div>' : '') + (m.menc3 ? '<div>🥉 ' + m.menc3 + '</div>' : '') + '</div></div>' : ''}
-        </div>
-        ${m.observacoes ? '<div class="match-observations"><div class="obs-title">📝 OBSERVAÇÕES</div><div class="obs-content">' + m.observacoes + '</div></div>' : ''}
-      </div>`;
-      
-      let placarParts = (m.placar || "0x0").split("x");
-      let g1 = parseInt(placarParts[0]) || 0;
-      let g2 = parseInt(placarParts[1]) || 0;
-      
-      if (!tabela[m.timeA]) tabela[m.timeA] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
-      if (!tabela[m.timeB]) tabela[m.timeB] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
-      tabela[m.timeA].gp += g1;
-      tabela[m.timeA].gc += g2;
-      tabela[m.timeB].gp += g2;
-      tabela[m.timeB].gc += g1;
-      if (g1 > g2) {
-        tabela[m.timeA].p += 3;
-        tabela[m.timeA].v++;
-        tabela[m.timeB].d++;
-      } else if (g2 > g1) {
-        tabela[m.timeB].p += 3;
-        tabela[m.timeB].v++;
-        tabela[m.timeA].d++;
-      } else {
-        tabela[m.timeA].p++;
-        tabela[m.timeB].p++;
-        tabela[m.timeA].e++;
-        tabela[m.timeB].e++;
-      }
-    }
-    
-    let timesOrdenados = [];
-    for (let time in tabela) {
-      timesOrdenados.push({ nome: time, pontos: tabela[time].p, stats: tabela[time] });
-    }
-    timesOrdenados.sort((a, b) => b.pontos - a.pontos);
-    for (let i = 0; i < timesOrdenados.length; i++) {
-      let s = timesOrdenados[i].stats;
-      tableContainer.innerHTML += `<div class="table-card"><div class="table-position">${i + 1}º</div><div class="table-team">${timesOrdenados[i].nome}</div><div class="table-stats">${s.v}V/${s.e}E/${s.d}D</div><div class="table-goals">${s.gp}:${s.gc}</div><div class="table-points">${s.p} pts</div></div>`;
+      tabela[m.timeA].p++;
+      tabela[m.timeB].p++;
+      tabela[m.timeA].e++;
+      tabela[m.timeB].e++;
     }
   }
-};
+  
+  let timesOrdenados = [];
+  for (let time in tabela) {
+    timesOrdenados.push({ nome: time, pontos: tabela[time].p, stats: tabela[time] });
+  }
+  timesOrdenados.sort((a, b) => b.pontos - a.pontos);
+  for (let i = 0; i < timesOrdenados.length; i++) {
+    let s = timesOrdenados[i].stats;
+    tableContainer.innerHTML += `<div class="table-card"><div class="table-position">${i + 1}º</div><div class="table-team">${timesOrdenados[i].nome}</div><div class="table-stats">${s.v}V/${s.e}E/${s.d}D</div><div class="table-goals">${s.gp}:${s.gc}</div><div class="table-points">${s.p} pts</div></div>`;
+  }
+},
+
+// Função auxiliar para renderizar jogadores da escalação (adicione DENTRO do objeto Match)
+renderLineupPlayers(players) {
+  if (!players || players.length === 0) return '<div class="no-players">Nenhum jogador definido</div>';
+  return players.map(p => `
+    <div class="lineup-player">
+      <img src="${p.img || 'https://via.placeholder.com/30?text=Jogador'}" onerror="this.src='https://via.placeholder.com/30?text=Jogador'">
+      <span>${p.nome}</span>
+    </div>
+  `).join('');
+}
 
 // ================= LINEUP =================
 const Lineup = {
