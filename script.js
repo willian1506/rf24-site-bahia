@@ -100,41 +100,40 @@ const lineupRef = db.ref("lineup");
 
 // ================= LISTA DE JOGADORES (para correspondência) =================
 let jogadoresLista = [];
+let jogadoresMap = {};
 
-// Carrega jogadores para correspondência
 playersRef.on("value", (snap) => {
   const dados = snap.val();
   if (dados) {
-    jogadoresLista = Object.values(dados).map(j => ({
+    jogadoresLista = Object.entries(dados).map(([id, j]) => ({
+      id: id,
       nome: j.nome,
       nomeLower: j.nome.toLowerCase(),
-      img: j.img
+      img: j.img || "https://via.placeholder.com/40?text=Jogador"
     }));
+    
+    jogadoresMap = {};
+    jogadoresLista.forEach(j => {
+      jogadoresMap[j.nome.toLowerCase()] = j;
+    });
   }
 });
 
-// ================= FUNÇÃO DE CORRESPONDÊNCIA DE NOMES =================
 function encontrarJogador(nomeDigitado) {
   if (!nomeDigitado) return null;
   
   const nomeBusca = nomeDigitado.toLowerCase().trim();
-  
-  // Remove acentos para melhor correspondência
   const semAcentos = nomeBusca.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   
-  // Busca exata primeiro
   let encontrado = jogadoresLista.find(j => j.nomeLower === nomeBusca);
   if (encontrado) return encontrado;
   
-  // Busca por similaridade (começa com)
   encontrado = jogadoresLista.find(j => j.nomeLower.startsWith(nomeBusca) || nomeBusca.startsWith(j.nomeLower));
   if (encontrado) return encontrado;
   
-  // Busca por inclusão de palavra
-  encontrado = jogadoresLista.find(j => j.nomeLower.includes(nomeBusca) || nomeBusca.includes(j.nomeLower));
+  encontrado = jogadoresLista.find(j => j.nomeLower.includes(nomeBusca));
   if (encontrado) return encontrado;
   
-  // Busca sem acentos
   encontrado = jogadoresLista.find(j => {
     const jSemAcentos = j.nomeLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     return jSemAcentos === semAcentos || jSemAcentos.includes(semAcentos);
@@ -149,11 +148,9 @@ const Stats = {
   
   processMatches(matches) {
     this.data = {};
-    
     if (!matches) return;
     
     Object.values(matches).forEach(match => {
-      // Processa GOLS
       if (match.gols) {
         const golsLines = match.gols.split("\n");
         golsLines.forEach(line => {
@@ -162,12 +159,11 @@ const Stats = {
             const nomeDigitado = nomeMatch[1];
             const jogador = encontrarJogador(nomeDigitado);
             const nomeCorrigido = jogador ? jogador.nome : nomeDigitado;
-            this.addStat(nomeCorrigido, "gols", 1, jogador?.img);
+            this.addStat(nomeCorrigido, "gols", 1, jogador?.img, jogador?.id);
           }
         });
       }
       
-      // Processa ASSISTÊNCIAS
       if (match.assistencias) {
         const assistLines = match.assistencias.split("\n");
         assistLines.forEach(line => {
@@ -176,12 +172,11 @@ const Stats = {
             const nomeDigitado = nomeMatch[1];
             const jogador = encontrarJogador(nomeDigitado);
             const nomeCorrigido = jogador ? jogador.nome : nomeDigitado;
-            this.addStat(nomeCorrigido, "assistencias", 1, jogador?.img);
+            this.addStat(nomeCorrigido, "assistencias", 1, jogador?.img, jogador?.id);
           }
         });
       }
       
-      // Processa DEFESAS
       if (match.defesas) {
         const defesasLines = match.defesas.split("\n");
         defesasLines.forEach(line => {
@@ -192,31 +187,29 @@ const Stats = {
             const jogador = encontrarJogador(nomeDigitado);
             const nomeCorrigido = jogador ? jogador.nome : nomeDigitado;
             const qtd = qtdMatch ? parseInt(qtdMatch[1]) : 1;
-            this.addStat(nomeCorrigido, "defesas", qtd, jogador?.img);
+            this.addStat(nomeCorrigido, "defesas", qtd, jogador?.img, jogador?.id);
           }
         });
       }
       
-      // Processa MVP
       if (match.mvp) {
         const jogador = encontrarJogador(match.mvp);
         const nomeCorrigido = jogador ? jogador.nome : match.mvp;
-        this.addStat(nomeCorrigido, "mvps", 1, jogador?.img);
+        this.addStat(nomeCorrigido, "mvps", 1, jogador?.img, jogador?.id);
       }
       
-      // Processa MENÇÕES
       const mencoes = [match.menc1, match.menc2, match.menc3];
       mencoes.forEach(men => {
         if (men) {
           const jogador = encontrarJogador(men);
           const nomeCorrigido = jogador ? jogador.nome : men;
-          this.addStat(nomeCorrigido, "mensoes", 1, jogador?.img);
+          this.addStat(nomeCorrigido, "mensoes", 1, jogador?.img, jogador?.id);
         }
       });
     });
   },
   
-  addStat(nome, tipo, valor, imagem) {
+  addStat(nome, tipo, valor, imagem, id) {
     if (!this.data[nome]) {
       this.data[nome] = {
         gols: 0,
@@ -225,7 +218,8 @@ const Stats = {
         mvps: 0,
         mensoes: 0,
         totalParticipacoes: 0,
-        img: imagem || "https://via.placeholder.com/80?text=Jogador"
+        img: imagem || "https://via.placeholder.com/80?text=Jogador",
+        id: id
       };
     }
     this.data[nome][tipo] += valor;
@@ -234,8 +228,7 @@ const Stats = {
       this.data[nome].assistencias + 
       this.data[nome].defesas;
     
-    // Se encontrou imagem, atualiza
-    if (imagem && !this.data[nome].img) {
+    if (imagem && this.data[nome].img === "https://via.placeholder.com/80?text=Jogador") {
       this.data[nome].img = imagem;
     }
   },
@@ -252,7 +245,6 @@ const Stats = {
         return;
       }
       
-      // Ordena por gols
       const sorted = Object.entries(this.data).sort((a,b) => b[1].gols - a[1].gols);
       
       container.innerHTML = "";
@@ -302,12 +294,15 @@ const Stats = {
   }
 };
 
-// ================= PLAYERS (com edição e exclusão) =================
+// ================= PLAYERS (com edição) =================
 const Player = {
-  // Armazena o ID do jogador sendo editado
   currentEditId: null,
   
   add() {
+    if (!isAdmin) {
+      Toast.show("🔒 Apenas administradores podem adicionar jogadores!");
+      return;
+    }
     if (!nome.value.trim()) {
       Toast.show("Digite o nome do jogador!");
       return;
@@ -330,8 +325,12 @@ const Player = {
     this.clearForm();
   },
   
-  // Abre o modal com os dados do jogador para edição
   edit(id, jogador) {
+    if (!isAdmin) {
+      Toast.show("🔒 Apenas administradores podem editar jogadores!");
+      return;
+    }
+    
     this.currentEditId = id;
     document.getElementById("editId").value = id;
     document.getElementById("editNome").value = jogador.nome || "";
@@ -347,8 +346,13 @@ const Player = {
     document.getElementById("editModal").classList.add("active");
   },
   
-  // Salva as alterações do jogador
   update() {
+    if (!isAdmin) {
+      Toast.show("🔒 Apenas administradores podem editar jogadores!");
+      this.closeModal();
+      return;
+    }
+    
     const id = document.getElementById("editId").value;
     if (!id) return;
     
@@ -371,8 +375,13 @@ const Player = {
     });
   },
   
-  // Exclui o jogador
   delete() {
+    if (!isAdmin) {
+      Toast.show("🔒 Apenas administradores podem excluir jogadores!");
+      this.closeModal();
+      return;
+    }
+    
     const id = document.getElementById("editId").value;
     if (!id) return;
     
@@ -385,13 +394,11 @@ const Player = {
     }
   },
   
-  // Fecha o modal
   closeModal() {
     document.getElementById("editModal").classList.remove("active");
     this.currentEditId = null;
   },
   
-  // Limpa o formulário de adicionar
   clearForm() {
     nome.value = "";
     img.value = "";
@@ -409,10 +416,11 @@ const Player = {
     Object.values(data || {})
       .sort((a,b)=>b.ovr - a.ovr)
       .forEach((p, index) => {
-        // Encontra o ID do jogador
         const jogadorId = Object.keys(data)[Object.values(data).indexOf(p)];
+        const editBadge = isAdmin ? '<div class="edit-badge">✏️ Clique para editar</div>' : '';
+        
         playersList.innerHTML += `
-        <div class="player-card-full" onclick="Player.edit('${jogadorId}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">
+        <div class="player-card-full" ${isAdmin ? `onclick="Player.edit('${jogadorId}', ${JSON.stringify(p).replace(/"/g, '&quot;')})"` : ''}>
           <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
           <h3>${p.nome}</h3>
           <div class="player-ovr">OVR ${p.ovr}</div>
@@ -424,16 +432,11 @@ const Player = {
             <div class="attr-item"><span>🛡️</span> Defesa: ${p.def}</div>
             <div class="attr-item"><span>💪</span> Físico: ${p.phy}</div>
           </div>
-          <div class="edit-badge">✏️ Clique para editar</div>
+          ${editBadge}
         </div>`;
       });
   }
 };
-
-// Funções globais para o modal
-function closeEditModal() {
-  Player.closeModal();
-}
 
 // ================= MATCHES =================
 const Match = {
@@ -522,6 +525,10 @@ const Match = {
   },
 
   add() {
+    if (!isAdmin) {
+      Toast.show("🔒 Apenas administradores podem adicionar partidas!");
+      return;
+    }
     if (!timeA.value || !timeB.value) {
       Toast.show("Preencha os nomes dos times!");
       return;
@@ -569,7 +576,6 @@ const Match = {
     matchesRef.push(match).then(() => {
       Logger.add("⚽ Adicionou Partida", `${match.timeA} ${match.placar} ${match.timeB} | ${match.dataPartida}`);
       Toast.show("Partida salva!");
-      Stats.processMatches({ [Date.now()]: match });
     });
     
     timeA.value = "";
@@ -688,17 +694,26 @@ const Match = {
   }
 };
 
-// ================= LINEUP =================
+// ================= LINEUP (COM FOTO DOS JOGADORES) =================
 const Lineup = {
   add() {
+    if (!isAdmin) {
+      Toast.show("🔒 Apenas administradores podem adicionar à escalação!");
+      return;
+    }
     if (!pNome.value.trim()) {
       Toast.show("Digite o nome do jogador!");
       return;
     }
+    
+    const jogador = encontrarJogador(pNome.value);
+    const imgUrl = jogador ? jogador.img : null;
+    
     lineupRef.push({
       nome: pNome.value,
       x: 50,
-      y: 50
+      y: 50,
+      img: imgUrl
     }).then(() => {
       Logger.add("📋 Adicionou à Escalação", `Jogador: ${pNome.value}`);
       Toast.show("Jogador adicionado ao campo!");
@@ -709,13 +724,21 @@ const Lineup = {
   render(data) {
     field.innerHTML = "";
     if (!data) return;
+    
     Object.entries(data).forEach(([id, p]) => {
       let el = document.createElement("div");
       el.className = "player";
-      el.innerText = p.nome;
+      
+      if (p.img) {
+        el.innerHTML = `<img src="${p.img}" class="player-img" onerror="this.style.display='none'"><span>${p.nome}</span>`;
+      } else {
+        el.innerHTML = `<span>${p.nome}</span>`;
+      }
+      
       el.style.left = p.x + "%";
       el.style.top = p.y + "%";
       el.setAttribute("data-id", id);
+      el.setAttribute("data-nome", p.nome);
       el.setAttribute("draggable", "false");
       
       let isDragging = false;
@@ -817,47 +840,4 @@ const Logger = {
 const System = {
   reset() {
     if(!isAdmin) {
-      Toast.show("Você não tem permissão!");
-      return;
-    }
-    if(confirm("⚠️ ATENÇÃO! Isso vai apagar TODOS OS DADOS exceto os LOGS. Tem certeza?")) {
-      playersRef.set(null);
-      matchesRef.set(null);
-      lineupRef.set(null);
-      Logger.add("⚠️ Reset Total", "Todos os dados foram apagados");
-      Toast.show("Dados resetados! Logs mantidos.");
-      setTimeout(() => location.reload(), 1500);
-    }
-  }
-};
-
-// ================= REALTIME LISTENERS =================
-playersRef.on("value", snap => Player.render(snap.val()));
-matchesRef.on("value", snap => {
-  Match.render(snap.val());
-  Stats.processMatches(snap.val());
-});
-lineupRef.on("value", snap => Lineup.render(snap.val()));
-
-// ================= SEARCH =================
-const searchPlayer = document.getElementById("searchPlayer");
-if (searchPlayer) {
-  searchPlayer.addEventListener("input", (e) => {
-    const term = e.target.value.toLowerCase();
-    document.querySelectorAll("#playersList .player-card-full").forEach(card => {
-      const nome = card.querySelector("h3")?.innerText.toLowerCase() || "";
-      card.style.display = nome.includes(term) ? "block" : "none";
-    });
-  });
-}
-
-const searchStats = document.getElementById("searchStats");
-if (searchStats) {
-  searchStats.addEventListener("input", (e) => {
-    const term = e.target.value.toLowerCase();
-    document.querySelectorAll("#statsList .stats-card").forEach(card => {
-      const nome = card.querySelector(".stats-player-name")?.innerText.toLowerCase() || "";
-      card.style.display = nome.includes(term) ? "flex" : "none";
-    });
-  });
-}
+      Toast.show("
