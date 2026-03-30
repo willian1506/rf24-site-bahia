@@ -1449,3 +1449,11 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .player-card-full:not(.admin-card) {
   cursor: default;
 }
+
+.logout-btn {
+  background: #333;
+  margin-top: 15px;
+}
+.logout-btn:hover {
+  background: #c62828;
+}
