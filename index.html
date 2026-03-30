@@ -2,349 +2,172 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>RF24 ULTIMATE MAX+</title>
+<title>Clube Esporte Salvador - ONLINE AAA</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="stylesheet" href="style.css">
+
+<!-- ================= FIREBASE CDN ================= -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-<style>
-
-/* ================= GLOBAL ================= */
-body{
-  margin:0;
-  font-family:Arial;
-  background: radial-gradient(circle at top,#0a2030,#050f18);
-  color:white;
-  overflow-x:hidden;
-}
-
-/* ================= MENU ================= */
-.menu{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  padding:15px;
-  background:rgba(0,0,0,0.4);
-  backdrop-filter:blur(10px);
-}
-
-.menu div{
-  padding:10px 20px;
-  border-radius:20px;
-  cursor:pointer;
-  transition:0.3s;
-}
-
-.menu div:hover{
-  box-shadow:0 0 20px #c62828;
-  transform:translateY(-2px);
-}
-
-.active-tab{
-  background:#c62828;
-}
-
-/* ================= SEÇÕES ================= */
-.section{
-  display:none;
-  padding:20px;
-  animation:fade 0.5s;
-}
-
-.section.active{
-  display:block;
-}
-
-@keyframes fade{
-  from{opacity:0; transform:translateY(20px);}
-  to{opacity:1;}
-}
-
-/* ================= CARDS ================= */
-.card{
-  width:190px;
-  height:270px;
-  border-radius:20px;
-  padding:10px;
-  margin:10px;
-  display:inline-block;
-  background:linear-gradient(160deg,#c62828,#0a2030);
-  text-align:center;
-  transition:0.3s;
-  position:relative;
-}
-
-.card:hover{
-  transform:scale(1.08);
-  box-shadow:0 0 25px red;
-}
-
-.ovr{
-  position:absolute;
-  top:10px;
-  left:10px;
-  font-size:24px;
-  font-weight:bold;
-}
-
-/* ================= INPUT ================= */
-input{
-  background:#091d2a;
-  border:none;
-  padding:10px;
-  margin:5px;
-  border-radius:12px;
-  color:white;
-  transition:0.3s;
-}
-
-input:focus{
-  box-shadow:0 0 10px red;
-  outline:none;
-}
-
-button{
-  padding:10px;
-  border:none;
-  border-radius:12px;
-  background:#c62828;
-  color:white;
-  cursor:pointer;
-}
-
-/* ================= CAMPO ================= */
-.field{
-  width:90%;
-  height:420px;
-  background:linear-gradient(green,#0b6623);
-  margin:auto;
-  border-radius:20px;
-  position:relative;
-}
-
-.player{
-  position:absolute;
-  background:#c62828;
-  padding:5px 10px;
-  border-radius:10px;
-  font-size:12px;
-  transform:translate(-50%,-50%);
-}
-
-/* ================= MATCH ================= */
-.match{
-  background:#091d2a;
-  border-radius:15px;
-  padding:10px;
-  margin:10px;
-}
-
-</style>
 </head>
 
 <body>
 
-<!-- MENU -->
-<div class="menu">
-  <div onclick="UI.show('players',this)">Jogadores</div>
-  <div onclick="UI.show('matches',this)">Partidas</div>
-  <div onclick="UI.show('tables',this)">Tabela</div>
-  <div onclick="UI.show('scorers',this)">Artilharia</div>
-  <div onclick="UI.show('lineup',this)">Escalação</div>
-  <div onclick="UI.show('admin',this)">Admin</div>
+<!-- ================= LOADER ================= -->
+<div id="loader">
+  <div class="spinner"></div>
+  <h2>Conectando ao servidor...</h2>
 </div>
 
-<!-- SEÇÕES -->
-<div id="players" class="section active"></div>
-<div id="matches" class="section"></div>
-<div id="tables" class="section"></div>
-<div id="scorers" class="section"></div>
+<!-- ================= TOAST ================= -->
+<div id="toast"></div>
 
-<div id="lineup" class="section">
-  <h2>Escalação</h2>
+<!-- ================= HEADER ================= -->
+<header class="header">
+  <h1>Clube Esporte Salvador</h1>
+</header>
+
+<!-- ================= MENU ================= -->
+<nav class="menu">
+  <div onclick="UI.go('home',this)" class="active">🏠 Início</div>
+  <div onclick="UI.go('players',this)">👥 Jogadores</div>
+  <div onclick="UI.go('matches',this)">📊 Partidas</div>
+  <div onclick="UI.go('tables',this)">🏆 Tabela</div>
+  <div onclick="UI.go('scorers',this)">⚽ Artilharia</div>
+  <div onclick="UI.go('lineup',this)">📋 Escalação</div>
+  <div onclick="UI.go('admin',this)">⚙️ Admin</div>
+</nav>
+
+<!-- ================= HOME ================= -->
+<section id="home" class="screen active">
+
+  <div class="hero">
+    <h2>Bem-vindo ao Sistema Oficial</h2>
+    <p>Interface nível FIFA com banco online em tempo real.</p>
+  </div>
+
+  <div class="history">
+
+    <h3>📖 História do Clube</h3>
+
+    <p>
+    Um clube grandioso, forjado na luta e na superação, que nunca desistiu de conquistar seu espaço.
+    </p>
+
+    <p>
+    A verdadeira virada de chave veio com a chegada do diretor <b>MonkeyWsp0</b>, ao lado de <b>Stormy1835</b> e <b>Willian1506</b>.
+    </p>
+
+    <p>
+    Dentro de campo, Stormy1835 e Willian1506 dominaram com suas habilidades, enquanto MonkeyWsp0 estruturou o clube com uma gestão sólida.
+    </p>
+
+    <p>
+    De desacreditado, o time virou líder absoluto, conquistando respeito e impondo seu jogo.
+    </p>
+
+    <p>
+    Hoje, o Clube Esporte Salvador é símbolo de evolução, união e vitória.
+    </p>
+
+  </div>
+
+</section>
+
+<!-- ================= JOGADORES ================= -->
+<section id="players" class="screen">
+  <h2>👥 Jogadores</h2>
+
+  <div class="top-bar">
+    <input id="searchPlayer" placeholder="Buscar jogador...">
+  </div>
+
+  <div id="playersList" class="grid"></div>
+</section>
+
+<!-- ================= PARTIDAS ================= -->
+<section id="matches" class="screen">
+  <h2>📊 Partidas</h2>
+  <div id="matchesList" class="list"></div>
+</section>
+
+<!-- ================= TABELA ================= -->
+<section id="tables" class="screen">
+  <h2>🏆 Tabela</h2>
+  <div id="tableList" class="list"></div>
+</section>
+
+<!-- ================= ARTILHARIA ================= -->
+<section id="scorers" class="screen">
+  <h2>⚽ Artilharia</h2>
+  <div id="scorersList" class="list"></div>
+</section>
+
+<!-- ================= ESCALAÇÃO ================= -->
+<section id="lineup" class="screen">
+  <h2>📋 Escalação</h2>
+
+  <div class="formation-info">
+    Arraste os jogadores livremente no campo
+  </div>
+
   <div class="field" id="field"></div>
-</div>
+</section>
 
-<div id="admin" class="section">
+<!-- ================= ADMIN ================= -->
+<section id="admin" class="screen">
 
-<h2>Painel Admin</h2>
+  <h2>⚙️ Painel Admin</h2>
 
-<h3>Jogador</h3>
-<input id="nome" placeholder="Nome">
-<input id="ovr" placeholder="OVR">
-<input id="pac" placeholder="PAC">
-<input id="sho" placeholder="SHO">
-<input id="pas" placeholder="PAS">
-<input id="dri" placeholder="DRI">
-<input id="def" placeholder="DEF">
-<input id="phy" placeholder="PHY">
-<button onclick="Player.add()">Adicionar Jogador</button>
+  <!-- JOGADOR -->
+  <div class="admin-box">
+    <h3>Adicionar Jogador</h3>
 
-<h3>Partida</h3>
-<input id="liga" placeholder="Liga">
-<input id="timeA" placeholder="Time A">
-<input id="timeB" placeholder="Time B">
-<input id="placar" placeholder="2x1">
-<input id="gols" placeholder="Nome:2">
-<button onclick="Match.add()">Adicionar Partida</button>
+    <input id="nome" placeholder="Nome">
+    <input id="img" placeholder="Imagem URL">
+    <input id="ovr" placeholder="OVR">
 
-<h3>Escalação</h3>
-<input id="pNome" placeholder="Nome">
-<input id="pX" placeholder="X">
-<input id="pY" placeholder="Y">
-<button onclick="Lineup.add()">Adicionar</button>
+    <div class="grid-attrs">
+      <input id="pac" placeholder="Ritmo">
+      <input id="sho" placeholder="Chute">
+      <input id="pas" placeholder="Passe">
+      <input id="dri" placeholder="Drible">
+      <input id="def" placeholder="Defesa">
+      <input id="phy" placeholder="Físico">
+    </div>
 
-<button onclick="System.clear()">RESET TOTAL</button>
+    <button onclick="Player.add()">Adicionar Jogador</button>
+  </div>
 
-</div>
+  <!-- PARTIDA -->
+  <div class="admin-box">
+    <h3>Adicionar Partida</h3>
 
-<script>
+    <input id="timeA" placeholder="Time A">
+    <input id="timeB" placeholder="Time B">
+    <input id="placar" placeholder="2x1">
+    <input id="gols" placeholder="Jogador:2">
 
-/* ================= FIREBASE ================= */
-const firebaseConfig = {
-  apiKey:"SUA_KEY",
-  authDomain:"SEU_APP.firebaseapp.com",
-  databaseURL:"https://SEU_APP-default-rtdb.firebaseio.com",
-  projectId:"SEU_APP"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+    <button onclick="Match.add()">Adicionar Partida</button>
+  </div>
 
-/* ================= UI ================= */
-const UI = {
-  show(id,el){
-    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-    document.querySelectorAll(".menu div").forEach(t=>t.classList.remove("active-tab"));
-    document.getElementById(id).classList.add("active");
-    el.classList.add("active-tab");
-  }
-};
+  <!-- ESCALAÇÃO -->
+  <div class="admin-box">
+    <h3>Escalação</h3>
 
-/* ================= PLAYER ================= */
-const Player = {
-  add(){
-    db.ref("players/"+Date.now()).set({
-      nome:nome.value,
-      ovr:ovr.value,
-      pac:pac.value,
-      sho:sho.value,
-      pas:pas.value,
-      dri:dri.value,
-      def:def.value,
-      phy:phy.value
-    });
-  },
-  render(data){
-    players.innerHTML="";
-    Object.values(data||{})
-    .sort((a,b)=>b.ovr-a.ovr)
-    .forEach(p=>{
-      players.innerHTML+=`
-        <div class="card">
-          <div class="ovr">${p.ovr}</div>
-          <img src="https://i.imgur.com/og7m8DI.png" width="90">
-          <h4>${p.nome}</h4>
-          <div>${p.pac} ${p.sho} ${p.pas}</div>
-        </div>
-      `;
-    });
-  }
-};
+    <input id="pNome" placeholder="Nome do jogador">
+    <button onclick="Lineup.add()">Adicionar ao campo</button>
+  </div>
 
-/* ================= MATCH ================= */
-const Match = {
-  add(){
-    db.ref("matches/"+Date.now()).set({
-      liga:liga.value,
-      timeA:timeA.value,
-      timeB:timeB.value,
-      placar:placar.value,
-      gols:gols.value
-    });
-  },
-  process(data){
-    let tabela={}, artilharia={};
+  <button class="danger" onclick="System.reset()">RESET TOTAL</button>
 
-    Object.values(data||{}).forEach(m=>{
+</section>
 
-      matches.innerHTML+=`
-        <div class="match">
-          ${m.timeA} ${m.placar} ${m.timeB} <br>
-          🏆 ${m.liga}
-        </div>
-      `;
-
-      let [g1,g2]=m.placar.split("x").map(Number);
-
-      tabela[m.timeA]=(tabela[m.timeA]||0);
-      tabela[m.timeB]=(tabela[m.timeB]||0);
-
-      if(g1>g2) tabela[m.timeA]+=3;
-      else if(g2>g1) tabela[m.timeB]+=3;
-      else {tabela[m.timeA]+=1; tabela[m.timeB]+=1;}
-
-      if(m.gols){
-        let [n,g]=m.gols.split(":");
-        artilharia[n]=(artilharia[n]||0)+parseInt(g);
-      }
-    });
-
-    System.renderTable(tabela);
-    System.renderScorers(artilharia);
-  }
-};
-
-/* ================= LINEUP ================= */
-const Lineup = {
-  add(){
-    db.ref("lineup/"+Date.now()).set({
-      nome:pNome.value,
-      x:pX.value,
-      y:pY.value
-    });
-  },
-  render(data){
-    field.innerHTML="";
-    Object.values(data||{}).forEach(p=>{
-      field.innerHTML+=`
-        <div class="player" style="left:${p.x}%; top:${p.y}%">
-          ${p.nome}
-        </div>
-      `;
-    });
-  }
-};
-
-/* ================= SYSTEM ================= */
-const System = {
-  clear(){
-    db.ref().remove();
-  },
-  renderTable(tabela){
-    tables.innerHTML="";
-    Object.entries(tabela).sort((a,b)=>b[1]-a[1])
-    .forEach((t,i)=>{
-      tables.innerHTML+=`<div class="card">${i+1}º ${t[0]} - ${t[1]}</div>`;
-    });
-  },
-  renderScorers(art){
-    scorers.innerHTML="";
-    Object.entries(art).sort((a,b)=>b[1]-a[1])
-    .forEach((a,i)=>{
-      scorers.innerHTML+=`<div class="card">${i+1}º ${a[0]} ⚽ ${a[1]}</div>`;
-    });
-  }
-};
-
-/* ================= LISTENERS ================= */
-db.ref("players").on("value",snap=>Player.render(snap.val()));
-db.ref("matches").on("value",snap=>{
-  matches.innerHTML="";
-  Match.process(snap.val());
-});
-db.ref("lineup").on("value",snap=>Lineup.render(snap.val()));
-
-</script>
+<!-- ================= SCRIPT ================= -->
+<script src="script.js"></script>
 
 </body>
 </html>
