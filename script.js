@@ -87,19 +87,36 @@ const lineupRef = db.ref("lineup");
 const Player = {
 
   add() {
+    if (!nome.value.trim()) {
+      Toast.show("Digite o nome do jogador!");
+      return;
+    }
+    
     let player = {
       nome: nome.value,
-      img: img.value,
+      img: img.value || "https://via.placeholder.com/150?text=Jogador",
       ovr: parseInt(ovr.value) || 0,
-      pac: pac.value,
-      sho: sho.value,
-      pas: pas.value,
-      dri: dri.value,
-      def: def.value,
-      phy: phy.value
+      pac: pac.value || "0",
+      sho: sho.value || "0",
+      pas: pas.value || "0",
+      dri: dri.value || "0",
+      def: def.value || "0",
+      phy: phy.value || "0"
     };
 
     playersRef.push(player);
+    
+    // Limpa os campos
+    nome.value = "";
+    img.value = "";
+    ovr.value = "";
+    pac.value = "";
+    sho.value = "";
+    pas.value = "";
+    dri.value = "";
+    def.value = "";
+    phy.value = "";
+    
     Toast.show("Jogador salvo online!");
   },
 
@@ -111,9 +128,17 @@ const Player = {
       .forEach(p => {
         playersList.innerHTML += `
         <div class="card">
-          <img src="${p.img}">
+          <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
           <h3>${p.nome}</h3>
           <p>OVR ${p.ovr}</p>
+          <div class="player-attrs">
+            <span>⚡${p.pac}</span>
+            <span>🎯${p.sho}</span>
+            <span>🎯${p.pas}</span>
+            <span>💫${p.dri}</span>
+            <span>🛡️${p.def}</span>
+            <span>💪${p.phy}</span>
+          </div>
         </div>`;
       });
   }
@@ -123,14 +148,30 @@ const Player = {
 const Match = {
 
   add() {
+    if (!timeA.value || !timeB.value) {
+      Toast.show("Preencha os nomes dos times!");
+      return;
+    }
+    
     let match = {
       timeA: timeA.value,
       timeB: timeB.value,
-      placar: placar.value,
-      gols: gols.value
+      timeALogo: timeALogo.value || null,
+      timeBLogo: timeBLogo.value || null,
+      placar: placar.value || "0x0",
+      gols: gols.value || "",
+      data: new Date().toLocaleString()
     };
 
     matchesRef.push(match);
+    
+    timeA.value = "";
+    timeB.value = "";
+    timeALogo.value = "";
+    timeBLogo.value = "";
+    placar.value = "";
+    gols.value = "";
+    
     Toast.show("Partida salva!");
   },
 
@@ -145,50 +186,90 @@ const Match = {
     Object.values(data || {}).forEach(m => {
 
       matchesList.innerHTML += `
-      <div class="card">
-        ${m.timeA} ${m.placar} ${m.timeB}
+      <div class="match-card">
+        <div class="match-teams">
+          <div class="team">
+            ${m.timeALogo ? `<img src="${m.timeALogo}" class="team-logo" alt="${m.timeA}" onerror="this.style.display='none'">` : '<div class="no-logo"></div>'}
+            <span class="team-name">${m.timeA}</span>
+          </div>
+          <div class="match-score">${m.placar}</div>
+          <div class="team">
+            ${m.timeBLogo ? `<img src="${m.timeBLogo}" class="team-logo" alt="${m.timeB}" onerror="this.style.display='none'">` : '<div class="no-logo"></div>'}
+            <span class="team-name">${m.timeB}</span>
+          </div>
+        </div>
+        ${m.data ? `<div class="match-date">📅 ${m.data}</div>` : ''}
+        ${m.gols ? `<div class="match-scorer">⚽ Artilheiro: ${m.gols}</div>` : ''}
       </div>`;
 
       let [g1, g2] = (m.placar || "0x0").split("x").map(Number);
 
-      tabela[m.timeA] = (tabela[m.timeA] || 0);
-      tabela[m.timeB] = (tabela[m.timeB] || 0);
+      tabela[m.timeA] = tabela[m.timeA] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
+      tabela[m.timeB] = tabela[m.timeB] || { pontos: 0, vitorias: 0, empates: 0, derrotas: 0, golsPro: 0, golsContra: 0 };
+      
+      tabela[m.timeA].golsPro += g1;
+      tabela[m.timeA].golsContra += g2;
+      tabela[m.timeB].golsPro += g2;
+      tabela[m.timeB].golsContra += g1;
 
-      if (g1 > g2) tabela[m.timeA] += 3;
-      else if (g2 > g1) tabela[m.timeB] += 3;
-      else {
-        tabela[m.timeA] += 1;
-        tabela[m.timeB] += 1;
+      if (g1 > g2) {
+        tabela[m.timeA].pontos += 3;
+        tabela[m.timeA].vitorias += 1;
+        tabela[m.timeB].derrotas += 1;
+      } else if (g2 > g1) {
+        tabela[m.timeB].pontos += 3;
+        tabela[m.timeB].vitorias += 1;
+        tabela[m.timeA].derrotas += 1;
+      } else {
+        tabela[m.timeA].pontos += 1;
+        tabela[m.timeB].pontos += 1;
+        tabela[m.timeA].empates += 1;
+        tabela[m.timeB].empates += 1;
       }
 
       if (m.gols) {
-        let [nome, qtd] = m.gols.split(":");
-        artilharia[nome] = (artilharia[nome] || 0) + parseInt(qtd);
+        let golsParts = m.gols.split(":");
+        if (golsParts.length === 2) {
+          let nome = golsParts[0].trim();
+          let qtd = parseInt(golsParts[1]);
+          artilharia[nome] = (artilharia[nome] || 0) + qtd;
+        }
       }
     });
 
-    Object.entries(tabela).forEach(t => {
-      tableList.innerHTML += `
-      <div class="card">
-        ${t[0]} - ${t[1]} pts
-      </div>`;
-    });
+    Object.entries(tabela)
+      .sort((a,b) => b[1].pontos - a[1].pontos)
+      .forEach((t, index) => {
+        let saldoGols = t[1].golsPro - t[1].golsContra;
+        tableList.innerHTML += `
+        <div class="table-card">
+          <div class="table-position">${index + 1}º</div>
+          <div class="table-team">${t[0]}</div>
+          <div class="table-stats">${t[1].vitorias}V/${t[1].empates}E/${t[1].derrotas}D</div>
+          <div class="table-goals">${t[1].golsPro}:${t[1].golsContra}</div>
+          <div class="table-points">${t[1].pontos} pts</div>
+        </div>`;
+      });
 
-    Object.entries(artilharia).forEach(a => {
-      scorersList.innerHTML += `
-      <div class="card">
-        ${a[0]} ⚽ ${a[1]}
-      </div>`;
-    });
+    Object.entries(artilharia)
+      .sort((a,b) => b[1] - a[1])
+      .forEach((a, index) => {
+        scorersList.innerHTML += `
+        <div class="scorer-card">
+          <div class="scorer-position">${index + 1}º</div>
+          <div class="scorer-name">${a[0]}</div>
+          <div class="scorer-goals">⚽ ${a[1]}</div>
+        </div>`;
+      });
   }
 };
 
-// ================= LINEUP (VERSÃO CORRIGIDA) =================
+// ================= LINEUP (CORRIGIDO) =================
 const Lineup = {
 
   add() {
     if (!pNome.value.trim()) {
-      Toast.show("Digite um nome!");
+      Toast.show("Digite o nome do jogador!");
       return;
     }
     
@@ -214,14 +295,12 @@ const Lineup = {
       el.style.left = p.x + "%";
       el.style.top = p.y + "%";
       el.setAttribute("data-id", id);
-      el.setAttribute("draggable", "false"); // Desativa drag nativo
+      el.setAttribute("draggable", "false");
       
-      // Variável de controle
       let isDragging = false;
       let startMouseX, startMouseY;
       let startLeft, startTop;
       
-      // Mouse down - inicia o arraste
       el.addEventListener("mousedown", (e) => {
         e.preventDefault();
         isDragging = true;
@@ -234,9 +313,9 @@ const Lineup = {
         
         el.style.cursor = "grabbing";
         el.style.opacity = "0.7";
+        el.style.zIndex = "100";
       });
       
-      // Mouse move - arrasta (global)
       const onMouseMove = (e) => {
         if (!isDragging) return;
         
@@ -251,35 +330,26 @@ const Lineup = {
         let newX = startLeft + deltaPercentX;
         let newY = startTop + deltaPercentY;
         
-        // Limites do campo
         newX = Math.min(Math.max(newX, 0), 100);
         newY = Math.min(Math.max(newY, 0), 100);
         
         el.style.left = newX + "%";
         el.style.top = newY + "%";
         
-        // Atualiza Firebase em tempo real
         lineupRef.child(id).update({ x: newX, y: newY });
       };
       
-      // Mouse up - finaliza
       const onMouseUp = () => {
         if (isDragging) {
           isDragging = false;
           el.style.cursor = "grab";
           el.style.opacity = "1";
+          el.style.zIndex = "10";
         }
       };
       
-      // Adiciona os listeners
       document.addEventListener("mousemove", onMouseMove);
       document.addEventListener("mouseup", onMouseUp);
-      
-      // Limpa listeners quando o elemento for removido (opcional)
-      el.addEventListener("remove", () => {
-        document.removeEventListener("mousemove", onMouseMove);
-        document.removeEventListener("mouseup", onMouseUp);
-      });
       
       el.style.cursor = "grab";
       field.appendChild(el);
@@ -303,9 +373,28 @@ lineupRef.on("value", snap => {
 // ================= SYSTEM =================
 const System = {
   reset() {
-    if(confirm("Tem certeza?")) {
+    if(confirm("⚠️ ATENÇÃO! Isso vai apagar TODOS os dados do banco. Tem certeza?")) {
       db.ref().set(null);
-      Toast.show("Banco resetado!");
+      Toast.show("Banco de dados resetado!");
+      setTimeout(() => location.reload(), 1500);
     }
   }
 };
+
+// ================= SEARCH FUNCTION =================
+const searchPlayer = document.getElementById("searchPlayer");
+if (searchPlayer) {
+  searchPlayer.addEventListener("input", (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const cards = document.querySelectorAll("#playersList .card");
+    
+    cards.forEach(card => {
+      const nome = card.querySelector("h3")?.innerText.toLowerCase() || "";
+      if (nome.includes(searchTerm)) {
+        card.style.display = "block";
+      } else {
+        card.style.display = "none";
+      }
+    });
+  });
+}
