@@ -16,8 +16,7 @@ const db = firebase.database();
 const ADMINS = [
   {user:"willian1506", pass:"willian123", nome:"Willian"},
   {user:"stormy", pass:"183524", nome:"Stormy"},
-  {user:"Mkz", pass:"12456453", nome:"Mkz"},
-  {user:"gusline1", pass:"18376423", nome:"Gusline"}
+  {user:"Mkz", pass:"12456453", nome:"Mkz"}
 ];
 
 let isAdmin = localStorage.getItem("admin") === "true";
@@ -74,16 +73,12 @@ const Toast = {
 // ================= UI =================
 const UI = {
   go(id, el) {
-    console.log("Mudando para:", id);
     let screens = document.querySelectorAll(".screen");
     for (let i = 0; i < screens.length; i++) {
       screens[i].classList.remove("active");
     }
     let target = document.getElementById(id);
-    if (target) {
-      target.classList.add("active");
-      console.log("Tela ativada:", id);
-    }
+    if (target) target.classList.add("active");
     let menus = document.querySelectorAll(".menu div");
     for (let i = 0; i < menus.length; i++) {
       menus[i].classList.remove("active");
@@ -543,6 +538,74 @@ const Match = {
     if (!matchesContainer || !tableContainer) return;
     matchesContainer.innerHTML = "";
     tableContainer.innerHTML = "";
+    let tabela = {};
+    
+    if (!data) return;
+    for (let key in data) {
+      let m = data[key];
+      const editButton = isAdmin ? `<button class="match-edit-btn" onclick="Match.edit('${key}', ${JSON.stringify(m).replace(/"/g, '&quot;')})">✏️ Editar</button>` : '';
+      
+      matchesContainer.innerHTML += `
+      <div class="match-full-card">
+        <div class="match-header">
+          <div class="match-liga-info">${m.ligaLogo ? '<img src="' + m.ligaLogo + '" class="liga-logo">' : '<div class="liga-logo-placeholder">🏆</div>'}<span class="match-type">${m.tipoPartida === 'liga' ? '🏆 LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span></div>
+          <div class="match-date-time">📅 ${m.dataPartida || "Data não informada"} ${editButton}</div>
+        </div>
+        <div class="match-teams-container">
+          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeALogo ? '<img src="' + m.timeALogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeA}</h3></div>
+          <div class="match-score-big">${m.placar}</div>
+          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeBLogo ? '<img src="' + m.timeBLogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeB}</h3></div>
+        </div>
+        <div class="match-stats-grid">
+          ${m.gols ? '<div class="stat-section"><div class="stat-title">⚽ GOLS</div><div class="stat-content">' + m.gols.replace(/\n/g, '<br>') + '</div></div>' : ''}
+          ${m.assistencias ? '<div class="stat-section"><div class="stat-title">👟 ASSISTÊNCIAS</div><div class="stat-content">' + m.assistencias.replace(/\n/g, '<br>') + '</div></div>' : ''}
+          ${m.defesas ? '<div class="stat-section"><div class="stat-title">🧤 DEFESAS</div><div class="stat-content">' + m.defesas.replace(/\n/g, '<br>') + '</div></div>' : ''}
+          ${m.cartoes ? '<div class="stat-section"><div class="stat-title">🟨🟥 CARTÕES</div><div class="stat-content">' + m.cartoes.replace(/\n/g, '<br>') + '</div></div>' : ''}
+        </div>
+        <div class="match-awards">
+          ${m.mvp ? '<div class="mvp-section"><div class="mvp-title">🏆 MVP</div><div class="mvp-name">⭐ ' + m.mvp + '</div></div>' : ''}
+          ${(m.menc1 || m.menc2 || m.menc3) ? '<div class="mentions-section"><div class="mentions-title">📋 MENÇÕES</div><div class="mentions-list">' + (m.menc1 ? '<div>🥇 ' + m.menc1 + '</div>' : '') + (m.menc2 ? '<div>🥈 ' + m.menc2 + '</div>' : '') + (m.menc3 ? '<div>🥉 ' + m.menc3 + '</div>' : '') + '</div></div>' : ''}
+        </div>
+        ${m.observacoes ? '<div class="match-observations"><div class="obs-title">📝 OBSERVAÇÕES</div><div class="obs-content">' + m.observacoes + '</div></div>' : ''}
+      </div>`;
+      
+      let placarParts = (m.placar || "0x0").split("x");
+      let g1 = parseInt(placarParts[0]) || 0;
+      let g2 = parseInt(placarParts[1]) || 0;
+      
+      if (!tabela[m.timeA]) tabela[m.timeA] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
+      if (!tabela[m.timeB]) tabela[m.timeB] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
+      tabela[m.timeA].gp += g1;
+      tabela[m.timeA].gc += g2;
+      tabela[m.timeB].gp += g2;
+      tabela[m.timeB].gc += g1;
+      if (g1 > g2) {
+        tabela[m.timeA].p += 3;
+        tabela[m.timeA].v++;
+        tabela[m.timeB].d++;
+      } else if (g2 > g1) {
+        tabela[m.timeB].p += 3;
+        tabela[m.timeB].v++;
+        tabela[m.timeA].d++;
+      } else {
+        tabela[m.timeA].p++;
+        tabela[m.timeB].p++;
+        tabela[m.timeA].e++;
+        tabela[m.timeB].e++;
+      }
+    }
+    
+    let timesOrdenados = [];
+    for (let time in tabela) {
+      timesOrdenados.push({ nome: time, pontos: tabela[time].p, stats: tabela[time] });
+    }
+    timesOrdenados.sort((a, b) => b.pontos - a.pontos);
+    for (let i = 0; i < timesOrdenados.length; i++) {
+      let s = timesOrdenados[i].stats;
+      tableContainer.innerHTML += `<div class="table-card"><div class="table-position">${i + 1}º</div><div class="table-team">${timesOrdenados[i].nome}</div><div class="table-stats">${s.v}V/${s.e}E/${s.d}D</div><div class="table-goals">${s.gp}:${s.gc}</div><div class="table-points">${s.p} pts</div></div>`;
+    }
+  }
+};
 
 // ================= LINEUP =================
 const Lineup = {
@@ -832,71 +895,3 @@ document.getElementById("searchStats")?.addEventListener("input", e => {
 });
 
 console.log("✅ Script carregado com sucesso!");
-    let tabela = {};
-    
-    if (!data) return;
-    for (let key in data) {
-      let m = data[key];
-      const editButton = isAdmin ? `<button class="match-edit-btn" onclick="Match.edit('${key}', ${JSON.stringify(m).replace(/"/g, '&quot;')})">✏️ Editar</button>` : '';
-      
-      matchesContainer.innerHTML += `
-      <div class="match-full-card">
-        <div class="match-header">
-          <div class="match-liga-info">${m.ligaLogo ? '<img src="' + m.ligaLogo + '" class="liga-logo">' : '<div class="liga-logo-placeholder">🏆</div>'}<span class="match-type">${m.tipoPartida === 'liga' ? '🏆 LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span></div>
-          <div class="match-date-time">📅 ${m.dataPartida || "Data não informada"} ${editButton}</div>
-        </div>
-        <div class="match-teams-container">
-          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeALogo ? '<img src="' + m.timeALogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeA}</h3></div>
-          <div class="match-score-big">${m.placar}</div>
-          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeBLogo ? '<img src="' + m.timeBLogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeB}</h3></div>
-        </div>
-        <div class="match-stats-grid">
-          ${m.gols ? '<div class="stat-section"><div class="stat-title">⚽ GOLS</div><div class="stat-content">' + m.gols.replace(/\n/g, '<br>') + '</div></div>' : ''}
-          ${m.assistencias ? '<div class="stat-section"><div class="stat-title">👟 ASSISTÊNCIAS</div><div class="stat-content">' + m.assistencias.replace(/\n/g, '<br>') + '</div></div>' : ''}
-          ${m.defesas ? '<div class="stat-section"><div class="stat-title">🧤 DEFESAS</div><div class="stat-content">' + m.defesas.replace(/\n/g, '<br>') + '</div></div>' : ''}
-          ${m.cartoes ? '<div class="stat-section"><div class="stat-title">🟨🟥 CARTÕES</div><div class="stat-content">' + m.cartoes.replace(/\n/g, '<br>') + '</div></div>' : ''}
-        </div>
-        <div class="match-awards">
-          ${m.mvp ? '<div class="mvp-section"><div class="mvp-title">🏆 MVP</div><div class="mvp-name">⭐ ' + m.mvp + '</div></div>' : ''}
-          ${(m.menc1 || m.menc2 || m.menc3) ? '<div class="mentions-section"><div class="mentions-title">📋 MENÇÕES</div><div class="mentions-list">' + (m.menc1 ? '<div>🥇 ' + m.menc1 + '</div>' : '') + (m.menc2 ? '<div>🥈 ' + m.menc2 + '</div>' : '') + (m.menc3 ? '<div>🥉 ' + m.menc3 + '</div>' : '') + '</div></div>' : ''}
-        </div>
-        ${m.observacoes ? '<div class="match-observations"><div class="obs-title">📝 OBSERVAÇÕES</div><div class="obs-content">' + m.observacoes + '</div></div>' : ''}
-      </div>`;
-      
-      let placarParts = (m.placar || "0x0").split("x");
-      let g1 = parseInt(placarParts[0]) || 0;
-      let g2 = parseInt(placarParts[1]) || 0;
-      
-      if (!tabela[m.timeA]) tabela[m.timeA] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
-      if (!tabela[m.timeB]) tabela[m.timeB] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
-      tabela[m.timeA].gp += g1;
-      tabela[m.timeA].gc += g2;
-      tabela[m.timeB].gp += g2;
-      tabela[m.timeB].gc += g1;
-      if (g1 > g2) {
-        tabela[m.timeA].p += 3;
-        tabela[m.timeA].v++;
-        tabela[m.timeB].d++;
-      } else if (g2 > g1) {
-        tabela[m.timeB].p += 3;
-        tabela[m.timeB].v++;
-        tabela[m.timeA].d++;
-      } else {
-        tabela[m.timeA].p++;
-        tabela[m.timeB].p++;
-        tabela[m.timeA].e++;
-        tabela[m.timeB].e++;
-      }
-    }
-    
-    let timesOrdenados = [];
-    for (let time in tabela) {
-      timesOrdenados.push({ nome: time, pontos: tabela[time].p, stats: tabela[time] });
-    }
-    timesOrdenados.sort((a, b) => b.pontos - a.pontos);
-    for (let i = 0; i < timesOrdenados.length; i++) {
-      let s = timesOrdenados[i].stats;
-      tableContainer.innerHTML += `<div class="table-card"><div class="table-position">${i + 1}º</div><div class="table-team">${timesOrdenados[i].nome}</div><div class="table-stats">${s.v}V/${s.e}E/${s.d}D</div><div class="table-goals">${s.gp}:${s.gc}</div><div class="table-points">${s.p} pts</div></div>`;
-    }
-  }
-};
