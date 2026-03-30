@@ -1387,8 +1387,61 @@ const translations = {
   }
 };
 
-// Idioma atual
-let currentLang = localStorage.getItem("language") || "pt";
+// ================= SISTEMA DE TRADUÇÃO CORRIGIDO =================
+
+// Função para definir o idioma
+function setLanguage(lang) {
+  if (!translations[lang]) return;
+  currentLang = lang;
+  translatePage();
+  
+  // Atualiza botões ativos
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    if (btn.getAttribute('data-lang') === lang) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  
+  // Mostra mensagem de confirmação
+  const langNames = {
+    pt: "Português 🇧🇷",
+    en: "English 🇺🇸",
+    es: "Español 🇪🇸",
+    fr: "Français 🇫🇷",
+    it: "Italiano 🇮🇹",
+    de: "Deutsch 🇩🇪",
+    ch: "Schweizerdeutsch 🇨🇭",
+    ru: "Русский 🇷🇺"
+  };
+  
+  Toast.show(`🌐 Idioma alterado para ${langNames[lang] || lang.toUpperCase()}`);
+}
+
+// Inicializa os botões de idioma
+function initLanguageButtons() {
+  const buttons = document.querySelectorAll('.lang-btn');
+  buttons.forEach(btn => {
+    // Remove eventos antigos para evitar duplicação
+    btn.removeEventListener('click', languageClickHandler);
+    btn.addEventListener('click', languageClickHandler);
+    
+    // Marca o botão ativo
+    const lang = btn.getAttribute('data-lang');
+    if (lang === currentLang) {
+      btn.classList.add('active');
+    }
+  });
+}
+
+// Handler para clique nos botões
+function languageClickHandler(e) {
+  const lang = this.getAttribute('data-lang');
+  if (lang) {
+    setLanguage(lang);
+  }
+}
 
 // Função para detectar idioma do navegador
 function detectBrowserLanguage() {
@@ -1406,50 +1459,40 @@ function detectBrowserLanguage() {
 // Função para traduzir um elemento
 function translateElement(element) {
   const text = element.innerText.trim();
-  const translation = translations[currentLang][text];
-  if (translation && translation !== text) {
-    element.innerText = translation;
+  if (translations[currentLang] && translations[currentLang][text]) {
+    if (translations[currentLang][text] !== text) {
+      element.innerText = translations[currentLang][text];
+    }
   }
 }
 
 // Função para traduzir todos os elementos da página
 function translatePage() {
+  // Traduz textos de elementos
   const elementsToTranslate = document.querySelectorAll(
-    'h1, h2, h3, p, button, .menu div, .admin-box h3, .formation-info, .logs-header small'
+    'h1, h2, h3, p, button, .menu div, .admin-box h3, .formation-info, .logs-header small, .history p, .hero-title, .hero-subtitle, .history h3'
   );
   
   elementsToTranslate.forEach(el => {
-    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-      const placeholder = el.getAttribute('placeholder');
-      if (placeholder && translations[currentLang][placeholder]) {
-        el.setAttribute('placeholder', translations[currentLang][placeholder]);
-      }
-    } else {
+    if (el.innerText && el.innerText.trim()) {
       translateElement(el);
     }
   });
   
-  document.querySelectorAll('.lang-btn').forEach(btn => {
-    const lang = btn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
-    if (lang === currentLang) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
+  // Traduz placeholders
+  const inputs = document.querySelectorAll('input, textarea');
+  inputs.forEach(input => {
+    const placeholder = input.getAttribute('placeholder');
+    if (placeholder && translations[currentLang] && translations[currentLang][placeholder]) {
+      input.setAttribute('placeholder', translations[currentLang][placeholder]);
     }
   });
   
+  // Salva no localStorage
   localStorage.setItem("language", currentLang);
 }
 
-// Função para definir o idioma
-function setLanguage(lang) {
-  if (!translations[lang]) return;
-  currentLang = lang;
-  translatePage();
-  Toast.show(`🌐 Idioma alterado para ${lang.toUpperCase()}`);
-}
-
-// Inicializa o idioma
+// Inicialização
 function initLanguage() {
   const savedLang = localStorage.getItem("language");
   if (savedLang && translations[savedLang]) {
@@ -1458,6 +1501,13 @@ function initLanguage() {
     currentLang = detectBrowserLanguage();
   }
   translatePage();
+  initLanguageButtons();
 }
 
-document.addEventListener("DOMContentLoaded", initLanguage);
+// Executa quando o DOM estiver pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLanguage);
+} else {
+  initLanguage();
+}
+
