@@ -16,9 +16,7 @@ const db = firebase.database();
 const ADMINS = [
   {user:"willian1506", pass:"willian123", nome:"Willian"},
   {user:"stormy", pass:"183524", nome:"Stormy"},
-  {user:"Mkz", pass:"12456453", nome:"Mkz"},
-  {user:"theo", pass:"ttheo23", nome:"SCP"},
-  {user:"baiano03", pass:"1253428", nome:"SCP"}
+  {user:"Mkz", pass:"12456453", nome:"Mkz"}
 ];
 
 let isAdmin = localStorage.getItem("admin") === "true";
@@ -102,6 +100,7 @@ const playersRef = db.ref("players");
 const matchesRef = db.ref("matches");
 const lineupRef = db.ref("lineup");
 const newsRef = db.ref("news");
+const standingsRef = db.ref("standings");
 
 let jogadoresLista = [];
 
@@ -375,114 +374,273 @@ const Player = {
     }
   }
 };
-render(data) {
-  let matchesContainer = document.getElementById("matchesList");
-  let tableContainer = document.getElementById("tableList");
-  if (!matchesContainer || !tableContainer) return;
-  matchesContainer.innerHTML = "";
-  tableContainer.innerHTML = "";
-  let tabela = {};
+
+// ================= MATCHES =================
+const Match = {
+  formatGols(input) {
+    if (!input || !input.trim()) return "";
+    return input.split("\n").map(line => {
+      let parts = line.trim().split(/\s+/);
+      return parts.length >= 2 ? `${parts[0]}⚽ ${parts[1]}'` : `${parts[0]}⚽`;
+    }).join("\n");
+  },
+  formatAssists(input) {
+    if (!input || !input.trim()) return "";
+    return input.split("\n").map(line => {
+      let parts = line.trim().split(/\s+/);
+      return parts.length >= 2 ? `${parts[0]}👟 ${parts[1]}'` : `${parts[0]}👟`;
+    }).join("\n");
+  },
+  formatDefesas(input) {
+    if (!input || !input.trim()) return "";
+    return input.split("\n").map(line => {
+      let parts = line.trim().split(/\s+/);
+      return parts.length >= 2 ? `${parts[0]}🧤 ${parts[1]} defesas` : `${parts[0]}🧤`;
+    }).join("\n");
+  },
+  formatCartoes(input) {
+    if (!input || !input.trim()) return "";
+    return input.split("\n").map(line => {
+      let parts = line.trim().split(/\s+/);
+      if (parts.length >= 3) {
+        let emoji = parts[2].toLowerCase().includes("vermelho") ? "🟥" : "🟨";
+        return `${parts[0]}${emoji} ${parts[1]}'`;
+      }
+      return parts.length >= 2 ? `${parts[0]}🟨 ${parts[1]}'` : `${parts[0]}🟨`;
+    }).join("\n");
+  },
   
-  if (!data) return;
-  for (let key in data) {
-    let m = data[key];
-    const editButton = isAdmin ? `<button class="match-edit-btn" onclick="Match.edit('${key}', ${JSON.stringify(m).replace(/"/g, '&quot;')})">✏️ Editar</button>` : '';
-    const lineupButton = isAdmin ? `<button class="match-lineup-btn" onclick="openMatchLineupModal('${key}')">📋 Escalação</button>` : '';
+  add() {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
+    let timeA = document.getElementById("timeA");
+    let timeB = document.getElementById("timeB");
+    if (!timeA.value || !timeB.value) { Toast.show("Preencha os times!"); return; }
     
-    matchesContainer.innerHTML += `
-    <div class="match-full-card">
-      <div class="match-header">
-        <div class="match-liga-info">${m.ligaLogo ? '<img src="' + m.ligaLogo + '" class="liga-logo">' : '<div class="liga-logo-placeholder">🏆</div>'}<span class="match-type">${m.tipoPartida === 'liga' ? '🏆 LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span></div>
-        <div class="match-date-time">📅 ${m.dataPartida || "Data não informada"} ${editButton} ${lineupButton}</div>
-      </div>
-      <div class="match-teams-container">
-        <div class="match-team-box"><div class="team-logo-wrapper">${m.timeALogo ? '<img src="' + m.timeALogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeA}</h3></div>
-        <div class="match-score-big">${m.placar}</div>
-        <div class="match-team-box"><div class="team-logo-wrapper">${m.timeBLogo ? '<img src="' + m.timeBLogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeB}</h3></div>
-      </div>
-      <div class="match-stats-grid">
-        ${m.gols ? '<div class="stat-section"><div class="stat-title">⚽ GOLS</div><div class="stat-content">' + m.gols.replace(/\n/g, '<br>') + '</div></div>' : ''}
-        ${m.assistencias ? '<div class="stat-section"><div class="stat-title">👟 ASSISTÊNCIAS</div><div class="stat-content">' + m.assistencias.replace(/\n/g, '<br>') + '</div></div>' : ''}
-        ${m.defesas ? '<div class="stat-section"><div class="stat-title">🧤 DEFESAS</div><div class="stat-content">' + m.defesas.replace(/\n/g, '<br>') + '</div></div>' : ''}
-        ${m.cartoes ? '<div class="stat-section"><div class="stat-title">🟨🟥 CARTÕES</div><div class="stat-content">' + m.cartoes.replace(/\n/g, '<br>') + '</div></div>' : ''}
-      </div>
-      <div class="match-awards">
-        ${m.mvp ? '<div class="mvp-section"><div class="mvp-title">🏆 MVP</div><div class="mvp-name">⭐ ' + m.mvp + '</div></div>' : ''}
-        ${(m.menc1 || m.menc2 || m.menc3) ? '<div class="mentions-section"><div class="mentions-title">📋 MENÇÕES</div><div class="mentions-list">' + (m.menc1 ? '<div>🥇 ' + m.menc1 + '</div>' : '') + (m.menc2 ? '<div>🥈 ' + m.menc2 + '</div>' : '') + (m.menc3 ? '<div>🥉 ' + m.menc3 + '</div>' : '') + '</div></div>' : ''}
-      </div>
-      ${m.observacoes ? '<div class="match-observations"><div class="obs-title">📝 OBSERVAÇÕES</div><div class="obs-content">' + m.observacoes + '</div></div>' : ''}
-      
-      ${m.lineup ? `
-      <div class="match-lineup-section">
-        <div class="match-lineup-header" onclick="toggleMatchLineup(this)">
-          <span>📋 Escalação da Partida</span>
-          <span class="toggle-icon">▼</span>
-        </div>
-        <div class="match-lineup-content" style="display: block;">
-          <div class="match-lineup-starters">
-            <h4>⚽ Titulares</h4>
-            <div class="match-lineup-players">${this.renderLineupPlayers(m.lineup.starters)}</div>
-          </div>
-          <div class="match-lineup-subs">
-            <h4>🔄 Reservas</h4>
-            <div class="match-lineup-players">${this.renderLineupPlayers(m.lineup.subs)}</div>
-          </div>
-          ${m.lineup.coach && m.lineup.coach.length ? `
-          <div class="match-lineup-coach">
-            <h4>📋 Técnico</h4>
-            <div class="match-lineup-players">${this.renderLineupPlayers(m.lineup.coach)}</div>
-          </div>` : ''}
-        </div>
-      </div>` : ''}
-    </div>`;
-    
-    let placarParts = (m.placar || "0x0").split("x");
-    let g1 = parseInt(placarParts[0]) || 0;
-    let g2 = parseInt(placarParts[1]) || 0;
-    
-    if (!tabela[m.timeA]) tabela[m.timeA] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
-    if (!tabela[m.timeB]) tabela[m.timeB] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
-    tabela[m.timeA].gp += g1;
-    tabela[m.timeA].gc += g2;
-    tabela[m.timeB].gp += g2;
-    tabela[m.timeB].gc += g1;
-    if (g1 > g2) {
-      tabela[m.timeA].p += 3;
-      tabela[m.timeA].v++;
-      tabela[m.timeB].d++;
-    } else if (g2 > g1) {
-      tabela[m.timeB].p += 3;
-      tabela[m.timeB].v++;
-      tabela[m.timeA].d++;
+    let dataPartida = "";
+    let partidaData = document.getElementById("partidaData");
+    let partidaHora = document.getElementById("partidaHora");
+    if (partidaData && partidaData.value) {
+      let d = new Date(partidaData.value);
+      dataPartida = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+      if (partidaHora && partidaHora.value) dataPartida += ` - ${partidaHora.value}`;
     } else {
-      tabela[m.timeA].p++;
-      tabela[m.timeB].p++;
-      tabela[m.timeA].e++;
-      tabela[m.timeB].e++;
+      let a = new Date();
+      dataPartida = `${a.getDate().toString().padStart(2, '0')}/${(a.getMonth() + 1).toString().padStart(2, '0')}/${a.getFullYear()} - ${a.getHours().toString().padStart(2, '0')}:${a.getMinutes().toString().padStart(2, '0')}`;
+    }
+    
+    matchesRef.push({
+      timeA: timeA.value, timeB: timeB.value,
+      timeALogo: document.getElementById("timeALogo").value || null,
+      timeBLogo: document.getElementById("timeBLogo").value || null,
+      ligaLogo: document.getElementById("ligaLogo").value || null,
+      tipoPartida: document.getElementById("tipoPartida").value,
+      placar: document.getElementById("placar").value || "0x0",
+      gols: this.formatGols(document.getElementById("golsList").value),
+      assistencias: this.formatAssists(document.getElementById("assistsList").value),
+      defesas: this.formatDefesas(document.getElementById("defesasList").value),
+      cartoes: this.formatCartoes(document.getElementById("cartoesList").value),
+      mvp: document.getElementById("mvp").value,
+      menc1: document.getElementById("men1").value,
+      menc2: document.getElementById("men2").value,
+      menc3: document.getElementById("men3").value,
+      observacoes: document.getElementById("obsPartida").value,
+      dataPartida: dataPartida,
+      timestamp: Date.now()
+    }).then(() => {
+      Logger.add("⚽ Adicionou Partida", `${timeA.value} ${document.getElementById("placar").value} ${timeB.value}`);
+      Toast.show("Partida salva!");
+    });
+    
+    timeA.value = timeB.value = "";
+    document.getElementById("timeALogo").value = "";
+    document.getElementById("timeBLogo").value = "";
+    document.getElementById("ligaLogo").value = "";
+    document.getElementById("placar").value = "";
+    document.getElementById("golsList").value = "";
+    document.getElementById("assistsList").value = "";
+    document.getElementById("defesasList").value = "";
+    document.getElementById("cartoesList").value = "";
+    document.getElementById("mvp").value = "";
+    document.getElementById("men1").value = "";
+    document.getElementById("men2").value = "";
+    document.getElementById("men3").value = "";
+    document.getElementById("obsPartida").value = "";
+    if (partidaData) partidaData.value = "";
+    if (partidaHora) partidaHora.value = "";
+  },
+  
+  edit(id, match) {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
+    document.getElementById("editMatchId").value = id;
+    document.getElementById("editMatchTimeA").value = match.timeA || "";
+    document.getElementById("editMatchTimeB").value = match.timeB || "";
+    document.getElementById("editMatchPlacar").value = match.placar || "";
+    document.getElementById("editMatchGols").value = this.parseStats(match.gols);
+    document.getElementById("editMatchAssists").value = this.parseStats(match.assistencias);
+    document.getElementById("editMatchDefesas").value = this.parseStats(match.defesas);
+    document.getElementById("editMatchCartoes").value = this.parseStats(match.cartoes);
+    document.getElementById("editMatchMvp").value = match.mvp || "";
+    document.getElementById("editMatchModal").style.display = "flex";
+  },
+  
+  parseStats(input) {
+    if (!input) return "";
+    return input.split("\n").map(line => {
+      return line.replace(/[⚽👟🧤🟨🟥]/g, '').replace(/\s*'\s*/g, '').replace(/defesas/g, '').trim();
+    }).join("\n");
+  },
+  
+  update() {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
+    let id = document.getElementById("editMatchId").value;
+    if (!id) return;
+    
+    let gols = document.getElementById("editMatchGols").value;
+    let assists = document.getElementById("editMatchAssists").value;
+    let defesas = document.getElementById("editMatchDefesas").value;
+    let cartoes = document.getElementById("editMatchCartoes").value;
+    
+    matchesRef.child(id).update({
+      timeA: document.getElementById("editMatchTimeA").value,
+      timeB: document.getElementById("editMatchTimeB").value,
+      placar: document.getElementById("editMatchPlacar").value,
+      gols: this.formatGols(gols),
+      assistencias: this.formatAssists(assists),
+      defesas: this.formatDefesas(defesas),
+      cartoes: this.formatCartoes(cartoes),
+      mvp: document.getElementById("editMatchMvp").value
+    }).then(() => {
+      Logger.add("✏️ Editou Partida", `ID: ${id}`);
+      Toast.show("Partida atualizada!");
+      this.closeModal();
+    });
+  },
+  
+  deleteMatch() {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
+    let id = document.getElementById("editMatchId").value;
+    if (!id) return;
+    if (confirm("⚠️ Excluir esta partida?")) {
+      matchesRef.child(id).remove().then(() => {
+        Logger.add("🗑️ Excluiu Partida", `ID: ${id}`);
+        Toast.show("Partida excluída!");
+        this.closeModal();
+      });
+    }
+  },
+  
+  closeModal() {
+    document.getElementById("editMatchModal").style.display = "none";
+  },
+  
+  renderLineupPlayers(players) {
+    if (!players || players.length === 0) return '<div class="no-players">Nenhum jogador definido</div>';
+    return players.map(p => `
+      <div class="lineup-player">
+        <img src="${p.img || 'https://via.placeholder.com/30?text=Jogador'}" onerror="this.src='https://via.placeholder.com/30?text=Jogador'">
+        <span>${p.nome}</span>
+      </div>
+    `).join('');
+  },
+  
+  render(data) {
+    let matchesContainer = document.getElementById("matchesList");
+    let tableContainer = document.getElementById("tableList");
+    if (!matchesContainer || !tableContainer) return;
+    matchesContainer.innerHTML = "";
+    tableContainer.innerHTML = "";
+    let tabela = {};
+    
+    if (!data) return;
+    for (let key in data) {
+      let m = data[key];
+      const editButton = isAdmin ? `<button class="match-edit-btn" onclick="Match.edit('${key}', ${JSON.stringify(m).replace(/"/g, '&quot;')})">✏️ Editar</button>` : '';
+      const lineupButton = isAdmin ? `<button class="match-lineup-btn" onclick="openMatchLineupModal('${key}')">📋 Escalação</button>` : '';
+      
+      matchesContainer.innerHTML += `
+      <div class="match-full-card">
+        <div class="match-header">
+          <div class="match-liga-info">${m.ligaLogo ? '<img src="' + m.ligaLogo + '" class="liga-logo">' : '<div class="liga-logo-placeholder">🏆</div>'}<span class="match-type">${m.tipoPartida === 'liga' ? '🏆 LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span></div>
+          <div class="match-date-time">📅 ${m.dataPartida || "Data não informada"} ${editButton} ${lineupButton}</div>
+        </div>
+        <div class="match-teams-container">
+          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeALogo ? '<img src="' + m.timeALogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeA}</h3></div>
+          <div class="match-score-big">${m.placar}</div>
+          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeBLogo ? '<img src="' + m.timeBLogo + '" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeB}</h3></div>
+        </div>
+        <div class="match-stats-grid">
+          ${m.gols ? '<div class="stat-section"><div class="stat-title">⚽ GOLS</div><div class="stat-content">' + m.gols.replace(/\n/g, '<br>') + '</div></div>' : ''}
+          ${m.assistencias ? '<div class="stat-section"><div class="stat-title">👟 ASSISTÊNCIAS</div><div class="stat-content">' + m.assistencias.replace(/\n/g, '<br>') + '</div></div>' : ''}
+          ${m.defesas ? '<div class="stat-section"><div class="stat-title">🧤 DEFESAS</div><div class="stat-content">' + m.defesas.replace(/\n/g, '<br>') + '</div></div>' : ''}
+          ${m.cartoes ? '<div class="stat-section"><div class="stat-title">🟨🟥 CARTÕES</div><div class="stat-content">' + m.cartoes.replace(/\n/g, '<br>') + '</div></div>' : ''}
+        </div>
+        <div class="match-awards">
+          ${m.mvp ? '<div class="mvp-section"><div class="mvp-title">🏆 MVP</div><div class="mvp-name">⭐ ' + m.mvp + '</div></div>' : ''}
+          ${(m.menc1 || m.menc2 || m.menc3) ? '<div class="mentions-section"><div class="mentions-title">📋 MENÇÕES</div><div class="mentions-list">' + (m.menc1 ? '<div>🥇 ' + m.menc1 + '</div>' : '') + (m.menc2 ? '<div>🥈 ' + m.menc2 + '</div>' : '') + (m.menc3 ? '<div>🥉 ' + m.menc3 + '</div>' : '') + '</div></div>' : ''}
+        </div>
+        ${m.observacoes ? '<div class="match-observations"><div class="obs-title">📝 OBSERVAÇÕES</div><div class="obs-content">' + m.observacoes + '</div></div>' : ''}
+        
+        ${m.lineup ? `
+        <div class="match-lineup-section">
+          <div class="match-lineup-header" onclick="toggleMatchLineup(this)">
+            <span>📋 Escalação da Partida</span>
+            <span class="toggle-icon">▼</span>
+          </div>
+          <div class="match-lineup-content" style="display: block;">
+            <div class="match-lineup-starters">
+              <h4>⚽ Titulares</h4>
+              <div class="match-lineup-players">${this.renderLineupPlayers(m.lineup.starters)}</div>
+            </div>
+            <div class="match-lineup-subs">
+              <h4>🔄 Reservas</h4>
+              <div class="match-lineup-players">${this.renderLineupPlayers(m.lineup.subs)}</div>
+            </div>
+            ${m.lineup.coach && m.lineup.coach.length ? `
+            <div class="match-lineup-coach">
+              <h4>📋 Técnico</h4>
+              <div class="match-lineup-players">${this.renderLineupPlayers(m.lineup.coach)}</div>
+            </div>` : ''}
+          </div>
+        </div>` : ''}
+      </div>`;
+      
+      let placarParts = (m.placar || "0x0").split("x");
+      let g1 = parseInt(placarParts[0]) || 0;
+      let g2 = parseInt(placarParts[1]) || 0;
+      
+      if (!tabela[m.timeA]) tabela[m.timeA] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
+      if (!tabela[m.timeB]) tabela[m.timeB] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
+      tabela[m.timeA].gp += g1;
+      tabela[m.timeA].gc += g2;
+      tabela[m.timeB].gp += g2;
+      tabela[m.timeB].gc += g1;
+      if (g1 > g2) {
+        tabela[m.timeA].p += 3;
+        tabela[m.timeA].v++;
+        tabela[m.timeB].d++;
+      } else if (g2 > g1) {
+        tabela[m.timeB].p += 3;
+        tabela[m.timeB].v++;
+        tabela[m.timeA].d++;
+      } else {
+        tabela[m.timeA].p++;
+        tabela[m.timeB].p++;
+        tabela[m.timeA].e++;
+        tabela[m.timeB].e++;
+      }
+    }
+    
+    let timesOrdenados = [];
+    for (let time in tabela) {
+      timesOrdenados.push({ nome: time, pontos: tabela[time].p, stats: tabela[time] });
+    }
+    timesOrdenados.sort((a, b) => b.pontos - a.pontos);
+    for (let i = 0; i < timesOrdenados.length; i++) {
+      let s = timesOrdenados[i].stats;
+      tableContainer.innerHTML += `<div class="table-card"><div class="table-position">${i + 1}º</div><div class="table-team">${timesOrdenados[i].nome}</div><div class="table-stats">${s.v}V/${s.e}E/${s.d}D</div><div class="table-goals">${s.gp}:${s.gc}</div><div class="table-points">${s.p} pts</div></div>`;
     }
   }
-  
-  let timesOrdenados = [];
-  for (let time in tabela) {
-    timesOrdenados.push({ nome: time, pontos: tabela[time].p, stats: tabela[time] });
-  }
-  timesOrdenados.sort((a, b) => b.pontos - a.pontos);
-  for (let i = 0; i < timesOrdenados.length; i++) {
-    let s = timesOrdenados[i].stats;
-    tableContainer.innerHTML += `<div class="table-card"><div class="table-position">${i + 1}º</div><div class="table-team">${timesOrdenados[i].nome}</div><div class="table-stats">${s.v}V/${s.e}E/${s.d}D</div><div class="table-goals">${s.gp}:${s.gc}</div><div class="table-points">${s.p} pts</div></div>`;
-  }
-},
-
-// Função auxiliar para renderizar jogadores da escalação (adicione DENTRO do objeto Match)
-renderLineupPlayers(players) {
-  if (!players || players.length === 0) return '<div class="no-players">Nenhum jogador definido</div>';
-  return players.map(p => `
-    <div class="lineup-player">
-      <img src="${p.img || 'https://via.placeholder.com/30?text=Jogador'}" onerror="this.src='https://via.placeholder.com/30?text=Jogador'">
-      <span>${p.nome}</span>
-    </div>
-  `).join('');
-}
+};
 
 // ================= LINEUP =================
 const Lineup = {
@@ -671,6 +829,116 @@ const News = {
   }
 };
 
+// ================= TABELA MANUAL =================
+const Standings = {
+  addOrUpdate() {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
+    
+    let time = document.getElementById("tableTeam").value.trim();
+    let pontos = parseInt(document.getElementById("tablePts").value) || 0;
+    let jogos = parseInt(document.getElementById("tablePj").value) || 0;
+    let vitorias = parseInt(document.getElementById("tableV").value) || 0;
+    let empates = parseInt(document.getElementById("tableE").value) || 0;
+    let derrotas = parseInt(document.getElementById("tableD").value) || 0;
+    let golsPro = parseInt(document.getElementById("tableGp").value) || 0;
+    let golsContra = parseInt(document.getElementById("tableGc").value) || 0;
+    
+    if (!time) { Toast.show("Digite o nome do time!"); return; }
+    
+    const saldoGols = golsPro - golsContra;
+    
+    standingsRef.orderByChild("time").equalTo(time).once("value", snap => {
+      let exists = false;
+      let id = null;
+      snap.forEach(child => {
+        exists = true;
+        id = child.key;
+      });
+      
+      const data = {
+        time: time,
+        pontos: pontos,
+        jogos: jogos,
+        vitorias: vitorias,
+        empates: empates,
+        derrotas: derrotas,
+        golsPro: golsPro,
+        golsContra: golsContra,
+        saldoGols: saldoGols,
+        timestamp: Date.now()
+      };
+      
+      if (exists && id) {
+        standingsRef.child(id).update(data).then(() => {
+          Logger.add("✏️ Editou Time na Tabela", `${time} | ${pontos} pts`);
+          Toast.show("Time atualizado!");
+        });
+      } else {
+        standingsRef.push(data).then(() => {
+          Logger.add("➕ Adicionou Time na Tabela", `${time} | ${pontos} pts`);
+          Toast.show("Time adicionado!");
+        });
+      }
+    });
+    
+    document.getElementById("tableTeam").value = "";
+    document.getElementById("tablePts").value = "";
+    document.getElementById("tablePj").value = "";
+    document.getElementById("tableV").value = "";
+    document.getElementById("tableE").value = "";
+    document.getElementById("tableD").value = "";
+    document.getElementById("tableGp").value = "";
+    document.getElementById("tableGc").value = "";
+  },
+  
+  delete(timeId, timeName) {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
+    if (confirm(`⚠️ Remover ${timeName} da tabela?`)) {
+      standingsRef.child(timeId).remove().then(() => {
+        Logger.add("🗑️ Removeu Time da Tabela", timeName);
+        Toast.show("Time removido!");
+      });
+    }
+  },
+  
+  render(data) {
+    let container = document.getElementById("tableList");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    if (!data) {
+      container.innerHTML = '<div class="no-stats">🏆 Nenhum time cadastrado na tabela</div>';
+      return;
+    }
+    
+    let times = [];
+    for (let id in data) {
+      times.push({ id: id, dados: data[id] });
+    }
+    times.sort((a, b) => {
+      if (a.dados.pontos !== b.dados.pontos) return b.dados.pontos - a.dados.pontos;
+      return b.dados.saldoGols - a.dados.saldoGols;
+    });
+    
+    for (let i = 0; i < times.length; i++) {
+      let t = times[i].dados;
+      let id = times[i].id;
+      
+      const deleteBtn = isAdmin ? `<button class="table-delete-btn" onclick="Standings.delete('${id}', '${t.time.replace(/'/g, "\\'")}')">🗑️</button>` : '';
+      
+      container.innerHTML += `
+      <div class="table-card">
+        <div class="table-position">${i + 1}º</div>
+        <div class="table-team">${t.time}</div>
+        <div class="table-stats">${t.vitorias}V/${t.empates}E/${t.derrotas}D</div>
+        <div class="table-goals">${t.golsPro}:${t.golsContra}</div>
+        <div class="table-points">${t.pontos} pts</div>
+        ${deleteBtn}
+      </div>`;
+    }
+  }
+};
+
 // ================= LOGGER =================
 const Logger = {
   add(action, details) {
@@ -726,6 +994,7 @@ const System = {
       matchesRef.set(null);
       lineupRef.set(null);
       newsRef.set(null);
+      standingsRef.set(null);
       Logger.add("⚠️ Reset Total", "Dados apagados");
       Toast.show("Dados resetados!");
       setTimeout(() => location.reload(), 1500);
@@ -733,14 +1002,218 @@ const System = {
   }
 };
 
-// ================= LISTENERS =================
-playersRef.on("value", snap => Player.render(snap.val()));
-matchesRef.on("value", snap => {
-  Match.render(snap.val());
-  Stats.processMatches(snap.val());
-});
-lineupRef.on("value", snap => Lineup.render(snap.val()));
-newsRef.on("value", snap => News.render(snap.val()));
+// ================= VARIÁVEIS GLOBAIS PARA LINEUP DA PARTIDA =================
+let currentMatchLineupId = null;
+let currentLineupType = null;
+
+// ================= FUNÇÕES PARA LINEUP DA PARTIDA =================
+function openMatchLineupModal(matchId) {
+  if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
+  currentMatchLineupId = matchId;
+  document.getElementById("matchLineupId").value = matchId;
+  loadMatchLineup(matchId);
+  document.getElementById("editMatchLineupModal").style.display = "flex";
+}
+
+function closeMatchLineupModal() {
+  document.getElementById("editMatchLineupModal").style.display = "none";
+  currentMatchLineupId = null;
+}
+
+function closeAddPlayerModal() {
+  document.getElementById("addPlayerToLineupModal").style.display = "none";
+  currentLineupType = null;
+}
+
+function addPlayerToMatchLineup(type) {
+  currentLineupType = type;
+  const select = document.getElementById("playerSelect");
+  select.innerHTML = '<option value="">Selecione um jogador</option>';
+  
+  playersRef.once("value", snap => {
+    const dados = snap.val();
+    if (dados) {
+      for (let id in dados) {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = dados[id].nome;
+        select.appendChild(option);
+      }
+    }
+  });
+  
+  document.getElementById("addPlayerToLineupModal").style.display = "flex";
+}
+
+function confirmAddPlayerToMatchLineup() {
+  const select = document.getElementById("playerSelect");
+  const customName = document.getElementById("playerCustomName").value.trim();
+  
+  let playerName = "";
+  let playerId = null;
+  let playerImg = null;
+  
+  if (customName) {
+    playerName = customName;
+    addPlayerToLineupList(currentLineupType, playerId, playerName, playerImg);
+    closeAddPlayerModal();
+    return;
+  } else if (select.value) {
+    playerId = select.value;
+    playersRef.child(playerId).once("value", snap => {
+      const p = snap.val();
+      if (p) {
+        playerName = p.nome;
+        playerImg = p.img;
+        addPlayerToLineupList(currentLineupType, playerId, playerName, playerImg);
+      }
+    });
+    closeAddPlayerModal();
+    return;
+  } else {
+    Toast.show("Selecione um jogador ou digite um nome!");
+    return;
+  }
+}
+
+function addPlayerToLineupList(type, playerId, playerName, playerImg) {
+  const container = document.getElementById(`matchLineup${type === 'starter' ? 'Starters' : type === 'sub' ? 'Subs' : 'Coach'}`);
+  
+  const playerDiv = document.createElement("div");
+  playerDiv.className = "lineup-player-item";
+  playerDiv.setAttribute("data-player-id", playerId || "custom");
+  playerDiv.setAttribute("data-player-name", playerName);
+  playerDiv.setAttribute("data-player-img", playerImg || "");
+  
+  playerDiv.innerHTML = `
+    <div class="lineup-player-img">
+      <img src="${playerImg || 'https://via.placeholder.com/40?text=Jogador'}" onerror="this.src='https://via.placeholder.com/40?text=Jogador'">
+    </div>
+    <div class="lineup-player-name">${playerName}</div>
+    <button class="lineup-remove-btn" onclick="this.parentElement.remove()">✖</button>
+  `;
+  
+  container.appendChild(playerDiv);
+}
+
+function saveMatchLineup() {
+  const matchId = document.getElementById("matchLineupId").value;
+  if (!matchId) return;
+  
+  const lineup = {
+    starters: [],
+    subs: [],
+    coach: []
+  };
+  
+  document.querySelectorAll("#matchLineupStarters .lineup-player-item").forEach(item => {
+    lineup.starters.push({
+      id: item.getAttribute("data-player-id"),
+      nome: item.getAttribute("data-player-name"),
+      img: item.getAttribute("data-player-img")
+    });
+  });
+  
+  document.querySelectorAll("#matchLineupSubs .lineup-player-item").forEach(item => {
+    lineup.subs.push({
+      id: item.getAttribute("data-player-id"),
+      nome: item.getAttribute("data-player-name"),
+      img: item.getAttribute("data-player-img")
+    });
+  });
+  
+  document.querySelectorAll("#matchLineupCoach .lineup-player-item").forEach(item => {
+    lineup.coach.push({
+      id: item.getAttribute("data-player-id"),
+      nome: item.getAttribute("data-player-name"),
+      img: item.getAttribute("data-player-img")
+    });
+  });
+  
+  matchesRef.child(matchId).child("lineup").set(lineup).then(() => {
+    Logger.add("📋 Editou Escalação da Partida", `Partida ID: ${matchId}`);
+    Toast.show("Escalação salva!");
+    closeMatchLineupModal();
+  });
+}
+
+function loadMatchLineup(matchId) {
+  document.getElementById("matchLineupStarters").innerHTML = "";
+  document.getElementById("matchLineupSubs").innerHTML = "";
+  document.getElementById("matchLineupCoach").innerHTML = "";
+  
+  matchesRef.child(matchId).child("lineup").once("value", snap => {
+    const lineup = snap.val();
+    if (lineup) {
+      if (lineup.starters) {
+        lineup.starters.forEach(p => {
+          const container = document.getElementById("matchLineupStarters");
+          const playerDiv = document.createElement("div");
+          playerDiv.className = "lineup-player-item";
+          playerDiv.setAttribute("data-player-id", p.id || "custom");
+          playerDiv.setAttribute("data-player-name", p.nome);
+          playerDiv.setAttribute("data-player-img", p.img || "");
+          playerDiv.innerHTML = `
+            <div class="lineup-player-img">
+              <img src="${p.img || 'https://via.placeholder.com/40?text=Jogador'}" onerror="this.src='https://via.placeholder.com/40?text=Jogador'">
+            </div>
+            <div class="lineup-player-name">${p.nome}</div>
+            <button class="lineup-remove-btn" onclick="this.parentElement.remove()">✖</button>
+          `;
+          container.appendChild(playerDiv);
+        });
+      }
+      if (lineup.subs) {
+        lineup.subs.forEach(p => {
+          const container = document.getElementById("matchLineupSubs");
+          const playerDiv = document.createElement("div");
+          playerDiv.className = "lineup-player-item";
+          playerDiv.setAttribute("data-player-id", p.id || "custom");
+          playerDiv.setAttribute("data-player-name", p.nome);
+          playerDiv.setAttribute("data-player-img", p.img || "");
+          playerDiv.innerHTML = `
+            <div class="lineup-player-img">
+              <img src="${p.img || 'https://via.placeholder.com/40?text=Jogador'}" onerror="this.src='https://via.placeholder.com/40?text=Jogador'">
+            </div>
+            <div class="lineup-player-name">${p.nome}</div>
+            <button class="lineup-remove-btn" onclick="this.parentElement.remove()">✖</button>
+          `;
+          container.appendChild(playerDiv);
+        });
+      }
+      if (lineup.coach) {
+        lineup.coach.forEach(p => {
+          const container = document.getElementById("matchLineupCoach");
+          const playerDiv = document.createElement("div");
+          playerDiv.className = "lineup-player-item";
+          playerDiv.setAttribute("data-player-id", p.id || "custom");
+          playerDiv.setAttribute("data-player-name", p.nome);
+          playerDiv.setAttribute("data-player-img", p.img || "");
+          playerDiv.innerHTML = `
+            <div class="lineup-player-img">
+              <img src="${p.img || 'https://via.placeholder.com/40?text=Jogador'}" onerror="this.src='https://via.placeholder.com/40?text=Jogador'">
+            </div>
+            <div class="lineup-player-name">${p.nome}</div>
+            <button class="lineup-remove-btn" onclick="this.parentElement.remove()">✖</button>
+          `;
+          container.appendChild(playerDiv);
+        });
+      }
+    }
+  });
+}
+
+function toggleMatchLineup(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  if (content.style.display === 'none' || !content.style.display) {
+    content.style.display = 'block';
+    icon.textContent = '▼';
+  } else {
+    content.style.display = 'none';
+    icon.textContent = '▶';
+  }
+}
 
 // ================= FUNÇÕES GLOBAIS =================
 function closeEditModal() {
@@ -754,6 +1227,16 @@ function closeEditMatchModal() {
 function closeEditNewsModal() {
   News.closeModal();
 }
+
+// ================= LISTENERS =================
+playersRef.on("value", snap => Player.render(snap.val()));
+matchesRef.on("value", snap => {
+  Match.render(snap.val());
+  Stats.processMatches(snap.val());
+});
+lineupRef.on("value", snap => Lineup.render(snap.val()));
+newsRef.on("value", snap => News.render(snap.val()));
+standingsRef.on("value", snap => Standings.render(snap.val()));
 
 // ================= SEARCH =================
 document.getElementById("searchPlayer")?.addEventListener("input", e => {
@@ -772,16 +1255,3 @@ document.getElementById("searchStats")?.addEventListener("input", e => {
 });
 
 console.log("✅ Script carregado com sucesso!");
-
-// ================= FUNÇÃO PARA EXPANDIR/RECOLHER ESCALAÇÃO =================
-function toggleMatchLineup(header) {
-  const content = header.nextElementSibling;
-  const icon = header.querySelector('.toggle-icon');
-  if (content.style.display === 'none') {
-    content.style.display = 'block';
-    icon.textContent = '▼';
-  } else {
-    content.style.display = 'none';
-    icon.textContent = '▶';
-  }
-}
