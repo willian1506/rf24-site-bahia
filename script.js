@@ -1,3 +1,25 @@
+// ================= FORÇA O LOADER A SUMIR IMEDIATAMENTE =================
+(function() {
+  // Função para esconder o loader
+  function esconderLoader() {
+    var loader = document.getElementById("loader");
+    if (loader) {
+      loader.style.display = "none";
+      console.log("✅ Loader escondido!");
+    }
+  }
+  
+  // Esconde imediatamente se o DOM já estiver carregado
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", esconderLoader);
+  } else {
+    esconderLoader();
+  }
+  
+  // Timeout de segurança (garantia)
+  setTimeout(esconderLoader, 500);
+})();
+
 // ================= FIREBASE =================
 const firebaseConfig = {
   apiKey: "AIzaSyAkNVdAudSyAnNYDCuw6fkZYCNU6fQvL08",
@@ -48,7 +70,8 @@ function logoutAdmin(){
   localStorage.removeItem("admin");
   localStorage.removeItem("currentUser");
   Toast.show("👋 Saiu do admin!");
-  UI.go('home', document.querySelector('.menu div:first-child'));
+  var homeBtn = document.querySelector('.menu div:first-child');
+  if(homeBtn) UI.go('home', homeBtn);
 }
 
 function openAdmin(el){
@@ -59,43 +82,41 @@ function openAdmin(el){
   if(loginAdmin()) UI.go('admin', el);
 }
 
-// ================= LOADER =================
-window.onload = () => {
-  setTimeout(() => {
-    const loader = document.getElementById("loader");
-    if(loader) loader.style.display = "none";
-  }, 800);
-};
-
 // ================= TOAST =================
 const Toast = {
   show(msg) {
-    const toastEl = document.getElementById("toast");
+    var toastEl = document.getElementById("toast");
     if(toastEl){
       toastEl.innerText = msg;
-      toastEl.style.opacity = 1;
-      setTimeout(() => toastEl.style.opacity = 0, 2500);
+      toastEl.style.opacity = "1";
+      setTimeout(() => toastEl.style.opacity = "0", 2500);
     }
   }
 };
 
-// ================= UI (CORRIGIDO) =================
+// ================= UI =================
 const UI = {
   go(id, el) {
     // Esconde todas as telas
-    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    var screens = document.querySelectorAll(".screen");
+    for(var i = 0; i < screens.length; i++) {
+      screens[i].classList.remove("active");
+    }
     // Mostra a tela selecionada
-    const targetScreen = document.getElementById(id);
-    if(targetScreen) targetScreen.classList.add("active");
+    var target = document.getElementById(id);
+    if(target) target.classList.add("active");
     
-    // Remove active de todos os menus
-    document.querySelectorAll(".menu div").forEach(m => m.classList.remove("active"));
+    // Remove active dos menus
+    var menus = document.querySelectorAll(".menu div");
+    for(var i = 0; i < menus.length; i++) {
+      menus[i].classList.remove("active");
+    }
     // Adiciona active no menu clicado
     if(el) el.classList.add("active");
     
     // Recarrega logs se for admin
-    if(id === "admin" && isAdmin) Logger.render();
-    if(id === "scorers") Stats.render();
+    if(id === "admin" && isAdmin && Logger.render) Logger.render();
+    if(id === "scorers" && Stats.render) Stats.render();
   }
 };
 
@@ -108,21 +129,29 @@ const lineupRef = db.ref("lineup");
 let jogadoresLista = [];
 
 playersRef.on("value", (snap) => {
-  const dados = snap.val();
+  var dados = snap.val();
   if(dados){
-    jogadoresLista = Object.entries(dados).map(([id, j]) => ({
-      id: id,
-      nome: j.nome,
-      nomeLower: j.nome.toLowerCase(),
-      img: j.img || "https://via.placeholder.com/40?text=Jogador"
-    }));
+    jogadoresLista = [];
+    for(var id in dados) {
+      jogadoresLista.push({
+        id: id,
+        nome: dados[id].nome,
+        nomeLower: dados[id].nome.toLowerCase(),
+        img: dados[id].img || "https://via.placeholder.com/40?text=Jogador"
+      });
+    }
   }
 });
 
 function encontrarJogador(nomeDigitado){
   if(!nomeDigitado) return null;
-  const nomeBusca = nomeDigitado.toLowerCase().trim();
-  return jogadoresLista.find(j => j.nomeLower === nomeBusca || j.nomeLower.includes(nomeBusca)) || null;
+  var nomeBusca = nomeDigitado.toLowerCase().trim();
+  for(var i = 0; i < jogadoresLista.length; i++) {
+    if(jogadoresLista[i].nomeLower === nomeBusca || jogadoresLista[i].nomeLower.includes(nomeBusca)) {
+      return jogadoresLista[i];
+    }
+  }
+  return null;
 }
 
 // ================= ESTATÍSTICAS =================
@@ -133,52 +162,57 @@ const Stats = {
     this.data = {};
     if(!matches) return;
     
-    Object.values(matches).forEach(match => {
+    for(var key in matches) {
+      var match = matches[key];
       if(match.gols){
-        match.gols.split("\n").forEach(line => {
-          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+(?:[0-9]*))/);
+        var linhas = match.gols.split("\n");
+        for(var i = 0; i < linhas.length; i++) {
+          var nomeMatch = linhas[i].match(/([a-zA-ZÀ-ÿ]+(?:[0-9]*))/);
           if(nomeMatch){
-            const jogador = encontrarJogador(nomeMatch[1]);
-            const nome = jogador ? jogador.nome : nomeMatch[1];
+            var jogador = encontrarJogador(nomeMatch[1]);
+            var nome = jogador ? jogador.nome : nomeMatch[1];
             this.addStat(nome, "gols", 1, jogador?.img);
           }
-        });
+        }
       }
       if(match.assistencias){
-        match.assistencias.split("\n").forEach(line => {
-          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+(?:[0-9]*))/);
+        var linhas = match.assistencias.split("\n");
+        for(var i = 0; i < linhas.length; i++) {
+          var nomeMatch = linhas[i].match(/([a-zA-ZÀ-ÿ]+(?:[0-9]*))/);
           if(nomeMatch){
-            const jogador = encontrarJogador(nomeMatch[1]);
-            const nome = jogador ? jogador.nome : nomeMatch[1];
+            var jogador = encontrarJogador(nomeMatch[1]);
+            var nome = jogador ? jogador.nome : nomeMatch[1];
             this.addStat(nome, "assistencias", 1, jogador?.img);
           }
-        });
+        }
       }
       if(match.defesas){
-        match.defesas.split("\n").forEach(line => {
-          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+(?:[0-9]*))/);
-          const qtdMatch = line.match(/(\d+)\s*defesas/);
+        var linhas = match.defesas.split("\n");
+        for(var i = 0; i < linhas.length; i++) {
+          var nomeMatch = linhas[i].match(/([a-zA-ZÀ-ÿ]+(?:[0-9]*))/);
+          var qtdMatch = linhas[i].match(/(\d+)\s*defesas/);
           if(nomeMatch){
-            const jogador = encontrarJogador(nomeMatch[1]);
-            const nome = jogador ? jogador.nome : nomeMatch[1];
-            const qtd = qtdMatch ? parseInt(qtdMatch[1]) : 1;
+            var jogador = encontrarJogador(nomeMatch[1]);
+            var nome = jogador ? jogador.nome : nomeMatch[1];
+            var qtd = qtdMatch ? parseInt(qtdMatch[1]) : 1;
             this.addStat(nome, "defesas", qtd, jogador?.img);
           }
-        });
+        }
       }
       if(match.mvp){
-        const jogador = encontrarJogador(match.mvp);
-        const nome = jogador ? jogador.nome : match.mvp;
+        var jogador = encontrarJogador(match.mvp);
+        var nome = jogador ? jogador.nome : match.mvp;
         this.addStat(nome, "mvps", 1, jogador?.img);
       }
-      [match.menc1, match.menc2, match.menc3].forEach(men => {
-        if(men){
-          const jogador = encontrarJogador(men);
-          const nome = jogador ? jogador.nome : men;
+      var mencoes = [match.menc1, match.menc2, match.menc3];
+      for(var i = 0; i < mencoes.length; i++) {
+        if(mencoes[i]){
+          var jogador = encontrarJogador(mencoes[i]);
+          var nome = jogador ? jogador.nome : mencoes[i];
           this.addStat(nome, "mensoes", 1, jogador?.img);
         }
-      });
-    });
+      }
+    }
   },
   
   addStat(nome, tipo, valor, imagem){
@@ -194,50 +228,73 @@ const Stats = {
   },
   
   render(){
-    const container = document.getElementById("statsList");
+    var container = document.getElementById("statsList");
     if(!container) return;
-    matchesRef.once("value", snap => {
-      this.processMatches(snap.val());
-      if(Object.keys(this.data).length === 0){
+    var self = this;
+    matchesRef.once("value", function(snap) {
+      self.processMatches(snap.val());
+      var keys = Object.keys(self.data);
+      if(keys.length === 0){
         container.innerHTML = '<div class="no-stats">📊 Nenhuma estatística disponível</div>';
         return;
       }
-      const sorted = Object.entries(this.data).sort((a,b) => b[1].gols - a[1].gols);
+      var sorted = [];
+      for(var nome in self.data) {
+        sorted.push({nome: nome, gols: self.data[nome].gols, stats: self.data[nome]});
+      }
+      sorted.sort(function(a,b){ return b.gols - a.gols; });
+      
       container.innerHTML = "";
-      sorted.forEach(([nome, stats], i) => {
+      for(var i = 0; i < sorted.length; i++) {
+        var s = sorted[i].stats;
         container.innerHTML += `
         <div class="stats-card">
           <div class="stats-rank">${i+1}º</div>
-          <div class="stats-player-img"><img src="${stats.img}" class="stats-img" onerror="this.src='https://via.placeholder.com/60?text=Jogador'"></div>
-          <div class="stats-player-info"><div class="stats-player-name">${nome}</div></div>
+          <div class="stats-player-img"><img src="${s.img}" class="stats-img" onerror="this.src='https://via.placeholder.com/60?text=Jogador'"></div>
+          <div class="stats-player-info"><div class="stats-player-name">${sorted[i].nome}</div></div>
           <div class="stats-numbers">
-            <div class="stat-item"><span class="stat-icon">⚽</span><span class="stat-value">${stats.gols}</span><span class="stat-label">Gols</span></div>
-            <div class="stat-item"><span class="stat-icon">👟</span><span class="stat-value">${stats.assistencias}</span><span class="stat-label">Assist.</span></div>
-            <div class="stat-item"><span class="stat-icon">🧤</span><span class="stat-value">${stats.defesas}</span><span class="stat-label">Defesas</span></div>
-            <div class="stat-item"><span class="stat-icon">🏆</span><span class="stat-value">${stats.mvps}</span><span class="stat-label">MVP</span></div>
-            <div class="stat-item"><span class="stat-icon">📋</span><span class="stat-value">${stats.mensoes}</span><span class="stat-label">Menções</span></div>
+            <div class="stat-item"><span class="stat-icon">⚽</span><span class="stat-value">${s.gols}</span><span class="stat-label">Gols</span></div>
+            <div class="stat-item"><span class="stat-icon">👟</span><span class="stat-value">${s.assistencias}</span><span class="stat-label">Assist.</span></div>
+            <div class="stat-item"><span class="stat-icon">🧤</span><span class="stat-value">${s.defesas}</span><span class="stat-label">Defesas</span></div>
+            <div class="stat-item"><span class="stat-icon">🏆</span><span class="stat-value">${s.mvps}</span><span class="stat-label">MVP</span></div>
+            <div class="stat-item"><span class="stat-icon">📋</span><span class="stat-value">${s.mensoes}</span><span class="stat-label">Menções</span></div>
           </div>
-          <div class="stats-total"><span>🎯 Total: ${stats.total}</span></div>
+          <div class="stats-total"><span>🎯 Total: ${s.total}</span></div>
         </div>`;
-      });
+      }
     });
   }
 };
 
-// ================= PLAYERS (SEM EDIÇÃO FORA DO ADMIN) =================
+// ================= PLAYERS =================
 const Player = {
   add(){
     if(!isAdmin){ Toast.show("🔒 Apenas administradores!"); return; }
-    if(!nome.value.trim()){ Toast.show("Digite o nome!"); return; }
+    var nomeInp = document.getElementById("nome");
+    if(!nomeInp.value.trim()){ Toast.show("Digite o nome!"); return; }
     playersRef.push({
-      nome: nome.value, img: img.value || "https://via.placeholder.com/150?text=Jogador",
-      ovr: parseInt(ovr.value)||0, pac: pac.value||"0", sho: sho.value||"0",
-      pas: pas.value||"0", dri: dri.value||"0", def: def.value||"0", phy: phy.value||"0"
-    }).then(() => {
-      Logger.add("➕ Adicionou Jogador", `Nome: ${nome.value}`);
+      nome: nomeInp.value,
+      img: document.getElementById("img").value || "https://via.placeholder.com/150?text=Jogador",
+      ovr: parseInt(document.getElementById("ovr").value)||0,
+      pac: document.getElementById("pac").value||"0",
+      sho: document.getElementById("sho").value||"0",
+      pas: document.getElementById("pas").value||"0",
+      dri: document.getElementById("dri").value||"0",
+      def: document.getElementById("def").value||"0",
+      phy: document.getElementById("phy").value||"0"
+    }).then(function() {
+      Logger.add("➕ Adicionou Jogador", "Nome: " + nomeInp.value);
       Toast.show("Jogador salvo!");
     });
-    nome.value = img.value = ovr.value = pac.value = sho.value = pas.value = dri.value = def.value = phy.value = "";
+    document.getElementById("nome").value = "";
+    document.getElementById("img").value = "";
+    document.getElementById("ovr").value = "";
+    document.getElementById("pac").value = "";
+    document.getElementById("sho").value = "";
+    document.getElementById("pas").value = "";
+    document.getElementById("dri").value = "";
+    document.getElementById("def").value = "";
+    document.getElementById("phy").value = "";
   },
   
   edit(id, jogador){
@@ -257,7 +314,7 @@ const Player = {
   
   update(){
     if(!isAdmin){ Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
-    const id = document.getElementById("editId").value;
+    var id = document.getElementById("editId").value;
     if(!id) return;
     playersRef.child(id).update({
       nome: document.getElementById("editNome").value,
@@ -269,22 +326,22 @@ const Player = {
       dri: document.getElementById("editDri").value||"0",
       def: document.getElementById("editDef").value||"0",
       phy: document.getElementById("editPhy").value||"0"
-    }).then(() => {
-      Logger.add("✏️ Editou Jogador", `Nome: ${document.getElementById("editNome").value}`);
+    }).then(function() {
+      Logger.add("✏️ Editou Jogador", "Nome: " + document.getElementById("editNome").value);
       Toast.show("Jogador atualizado!");
-      this.closeModal();
+      Player.closeModal();
     });
   },
   
   delete(){
     if(!isAdmin){ Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
-    const id = document.getElementById("editId").value;
+    var id = document.getElementById("editId").value;
     if(!id) return;
     if(confirm("⚠️ Excluir este jogador?")){
-      playersRef.child(id).remove().then(() => {
-        Logger.add("🗑️ Excluiu Jogador", `ID: ${id}`);
+      playersRef.child(id).remove().then(function() {
+        Logger.add("🗑️ Excluiu Jogador", "ID: " + id);
         Toast.show("Jogador excluído!");
-        this.closeModal();
+        Player.closeModal();
       });
     }
   },
@@ -294,13 +351,21 @@ const Player = {
   },
   
   render(data){
-    playersList.innerHTML = "";
+    var container = document.getElementById("playersList");
+    if(!container) return;
+    container.innerHTML = "";
     if(!data) return;
     
-    // Para não-admin: só visualização
+    var jogadores = [];
+    for(var id in data) {
+      jogadores.push({id: id, dados: data[id]});
+    }
+    jogadores.sort(function(a,b){ return b.dados.ovr - a.dados.ovr; });
+    
     if(!isAdmin){
-      Object.values(data).sort((a,b)=>b.ovr - a.ovr).forEach(p => {
-        playersList.innerHTML += `
+      for(var i = 0; i < jogadores.length; i++) {
+        var p = jogadores[i].dados;
+        container.innerHTML += `
         <div class="player-card-full">
           <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
           <h3>${p.nome}</h3>
@@ -315,13 +380,14 @@ const Player = {
           </div>
           <div class="view-only-badge">👀 Visualização</div>
         </div>`;
-      });
+      }
       return;
     }
     
-    // Para admin: com edição
-    Object.entries(data).sort((a,b)=>b[1].ovr - a[1].ovr).forEach(([id, p]) => {
-      playersList.innerHTML += `
+    for(var i = 0; i < jogadores.length; i++) {
+      var p = jogadores[i].dados;
+      var id = jogadores[i].id;
+      container.innerHTML += `
       <div class="player-card-full admin-card" onclick="Player.edit('${id}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">
         <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
         <h3>${p.nome}</h3>
@@ -336,122 +402,216 @@ const Player = {
         </div>
         <div class="edit-badge">✏️ Clique para editar</div>
       </div>`;
-    });
+    }
   }
 };
 
 // ================= MATCHES =================
 const Match = {
   formatGols(input){
-    if(!input.trim()) return "";
-    return input.split("\n").map(line => {
-      let parts = line.trim().split(/\s+/);
-      return parts.length >= 2 ? `${parts[0]}⚽ ${parts[1]}'` : `${parts[0]}⚽`;
-    }).join("\n");
-  },
-  formatAssists(input){
-    if(!input.trim()) return "";
-    return input.split("\n").map(line => {
-      let parts = line.trim().split(/\s+/);
-      return parts.length >= 2 ? `${parts[0]}👟 ${parts[1]}'` : `${parts[0]}👟`;
-    }).join("\n");
-  },
-  formatDefesas(input){
-    if(!input.trim()) return "";
-    return input.split("\n").map(line => {
-      let parts = line.trim().split(/\s+/);
-      return parts.length >= 2 ? `${parts[0]}🧤 ${parts[1]} defesas` : `${parts[0]}🧤`;
-    }).join("\n");
-  },
-  formatCartoes(input){
-    if(!input.trim()) return "";
-    return input.split("\n").map(line => {
-      let parts = line.trim().split(/\s+/);
-      if(parts.length >= 3){
-        let emoji = parts[2].toLowerCase().includes("vermelho") ? "🟥" : "🟨";
-        return `${parts[0]}${emoji} ${parts[1]}'`;
+    if(!input || !input.trim()) return "";
+    var lines = input.split("\n");
+    var result = [];
+    for(var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if(line){
+        var parts = line.split(/\s+/);
+        if(parts.length >= 2){
+          result.push(parts[0] + "⚽ " + parts[1] + "'");
+        } else {
+          result.push(parts[0] + "⚽");
+        }
       }
-      return parts.length >= 2 ? `${parts[0]}🟨 ${parts[1]}'` : `${parts[0]}🟨`;
-    }).join("\n");
+    }
+    return result.join("\n");
+  },
+  
+  formatAssists(input){
+    if(!input || !input.trim()) return "";
+    var lines = input.split("\n");
+    var result = [];
+    for(var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if(line){
+        var parts = line.split(/\s+/);
+        if(parts.length >= 2){
+          result.push(parts[0] + "👟 " + parts[1] + "'");
+        } else {
+          result.push(parts[0] + "👟");
+        }
+      }
+    }
+    return result.join("\n");
+  },
+  
+  formatDefesas(input){
+    if(!input || !input.trim()) return "";
+    var lines = input.split("\n");
+    var result = [];
+    for(var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if(line){
+        var parts = line.split(/\s+/);
+        if(parts.length >= 2){
+          result.push(parts[0] + "🧤 " + parts[1] + " defesas");
+        } else {
+          result.push(parts[0] + "🧤");
+        }
+      }
+    }
+    return result.join("\n");
+  },
+  
+  formatCartoes(input){
+    if(!input || !input.trim()) return "";
+    var lines = input.split("\n");
+    var result = [];
+    for(var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if(line){
+        var parts = line.split(/\s+/);
+        if(parts.length >= 3){
+          var emoji = parts[2].toLowerCase().includes("vermelho") ? "🟥" : "🟨";
+          result.push(parts[0] + emoji + " " + parts[1] + "'");
+        } else if(parts.length >= 2){
+          result.push(parts[0] + "🟨 " + parts[1] + "'");
+        } else {
+          result.push(parts[0] + "🟨");
+        }
+      }
+    }
+    return result.join("\n");
   },
   
   add(){
     if(!isAdmin){ Toast.show("🔒 Apenas administradores!"); return; }
+    var timeA = document.getElementById("timeA");
+    var timeB = document.getElementById("timeB");
     if(!timeA.value || !timeB.value){ Toast.show("Preencha os times!"); return; }
     
-    let dataPartida = "";
-    if(partidaData.value){
-      const d = new Date(partidaData.value);
-      dataPartida = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
-      if(partidaHora.value) dataPartida += ` - ${partidaHora.value}`;
+    var dataPartida = "";
+    var partidaData = document.getElementById("partidaData");
+    var partidaHora = document.getElementById("partidaHora");
+    if(partidaData && partidaData.value){
+      var d = new Date(partidaData.value);
+      dataPartida = (d.getDate().toString().padStart(2,'0')) + "/" + ((d.getMonth()+1).toString().padStart(2,'0')) + "/" + d.getFullYear();
+      if(partidaHora && partidaHora.value) dataPartida += " - " + partidaHora.value;
     } else {
-      const a = new Date();
-      dataPartida = `${a.getDate().toString().padStart(2,'0')}/${(a.getMonth()+1).toString().padStart(2,'0')}/${a.getFullYear()} - ${a.getHours().toString().padStart(2,'0')}:${a.getMinutes().toString().padStart(2,'0')}`;
+      var a = new Date();
+      dataPartida = (a.getDate().toString().padStart(2,'0')) + "/" + ((a.getMonth()+1).toString().padStart(2,'0')) + "/" + a.getFullYear() + " - " + a.getHours().toString().padStart(2,'0') + ":" + a.getMinutes().toString().padStart(2,'0');
     }
     
     matchesRef.push({
       timeA: timeA.value, timeB: timeB.value,
-      timeALogo: timeALogo.value||null, timeBLogo: timeBLogo.value||null,
-      ligaLogo: ligaLogo.value||null, tipoPartida: tipoPartida.value,
-      placar: placar.value||"0x0",
-      gols: this.formatGols(golsList.value),
-      assistencias: this.formatAssists(assistsList.value),
-      defesas: this.formatDefesas(defesasList.value),
-      cartoes: this.formatCartoes(cartoesList.value),
-      mvp: mvp.value, menc1: men1.value, menc2: men2.value, menc3: men3.value,
-      observacoes: obsPartida.value, dataPartida: dataPartida,
+      timeALogo: document.getElementById("timeALogo").value||null,
+      timeBLogo: document.getElementById("timeBLogo").value||null,
+      ligaLogo: document.getElementById("ligaLogo").value||null,
+      tipoPartida: document.getElementById("tipoPartida").value,
+      placar: document.getElementById("placar").value||"0x0",
+      gols: this.formatGols(document.getElementById("golsList").value),
+      assistencias: this.formatAssists(document.getElementById("assistsList").value),
+      defesas: this.formatDefesas(document.getElementById("defesasList").value),
+      cartoes: this.formatCartoes(document.getElementById("cartoesList").value),
+      mvp: document.getElementById("mvp").value,
+      menc1: document.getElementById("men1").value,
+      menc2: document.getElementById("men2").value,
+      menc3: document.getElementById("men3").value,
+      observacoes: document.getElementById("obsPartida").value,
+      dataPartida: dataPartida,
       timestamp: Date.now()
-    }).then(() => {
-      Logger.add("⚽ Adicionou Partida", `${timeA.value} ${placar.value} ${timeB.value}`);
+    }).then(function() {
+      Logger.add("⚽ Adicionou Partida", timeA.value + " " + document.getElementById("placar").value + " " + timeB.value);
       Toast.show("Partida salva!");
     });
     
-    timeA.value = timeB.value = timeALogo.value = timeBLogo.value = ligaLogo.value = placar.value = "";
-    golsList.value = assistsList.value = defesasList.value = cartoesList.value = "";
-    mvp.value = men1.value = men2.value = men3.value = obsPartida.value = "";
-    partidaData.value = partidaHora.value = "";
+    timeA.value = timeB.value = "";
+    document.getElementById("timeALogo").value = "";
+    document.getElementById("timeBLogo").value = "";
+    document.getElementById("ligaLogo").value = "";
+    document.getElementById("placar").value = "";
+    document.getElementById("golsList").value = "";
+    document.getElementById("assistsList").value = "";
+    document.getElementById("defesasList").value = "";
+    document.getElementById("cartoesList").value = "";
+    document.getElementById("mvp").value = "";
+    document.getElementById("men1").value = "";
+    document.getElementById("men2").value = "";
+    document.getElementById("men3").value = "";
+    document.getElementById("obsPartida").value = "";
+    if(partidaData) partidaData.value = "";
+    if(partidaHora) partidaHora.value = "";
   },
   
   render(data){
-    matchesList.innerHTML = "";
-    tableList.innerHTML = "";
-    let tabela = {};
-    Object.values(data || {}).forEach(m => {
-      matchesList.innerHTML += `
+    var matchesContainer = document.getElementById("matchesList");
+    var tableContainer = document.getElementById("tableList");
+    if(!matchesContainer || !tableContainer) return;
+    matchesContainer.innerHTML = "";
+    tableContainer.innerHTML = "";
+    var tabela = {};
+    
+    if(!data) return;
+    for(var key in data) {
+      var m = data[key];
+      matchesContainer.innerHTML += `
       <div class="match-full-card">
         <div class="match-header">
-          <div class="match-liga-info">${m.ligaLogo ? `<img src="${m.ligaLogo}" class="liga-logo">` : '<div class="liga-logo-placeholder">🏆</div>'}<span class="match-type">${m.tipoPartida === 'liga' ? '🏆 LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span></div>
+          <div class="match-liga-info">${m.ligaLogo ? '<img src="'+m.ligaLogo+'" class="liga-logo">' : '<div class="liga-logo-placeholder">🏆</div>'}<span class="match-type">${m.tipoPartida === 'liga' ? '🏆 LIGA' : m.tipoPartida === 'copa' ? '🏅 COPA' : '🤝 AMISTOSO'}</span></div>
           <div class="match-date-time">📅 ${m.dataPartida || "Data não informada"}</div>
         </div>
         <div class="match-teams-container">
-          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeALogo ? `<img src="${m.timeALogo}" class="team-logo-big">` : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeA}</h3></div>
+          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeALogo ? '<img src="'+m.timeALogo+'" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeA}</h3></div>
           <div class="match-score-big">${m.placar}</div>
-          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeBLogo ? `<img src="${m.timeBLogo}" class="team-logo-big">` : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeB}</h3></div>
+          <div class="match-team-box"><div class="team-logo-wrapper">${m.timeBLogo ? '<img src="'+m.timeBLogo+'" class="team-logo-big">' : '<div class="team-logo-placeholder">⚽</div>'}</div><h3>${m.timeB}</h3></div>
         </div>
         <div class="match-stats-grid">
-          ${m.gols ? `<div class="stat-section"><div class="stat-title">⚽ GOLS</div><div class="stat-content">${m.gols.replace(/\n/g,'<br>')}</div></div>` : ''}
-          ${m.assistencias ? `<div class="stat-section"><div class="stat-title">👟 ASSISTÊNCIAS</div><div class="stat-content">${m.assistencias.replace(/\n/g,'<br>')}</div></div>` : ''}
-          ${m.defesas ? `<div class="stat-section"><div class="stat-title">🧤 DEFESAS</div><div class="stat-content">${m.defesas.replace(/\n/g,'<br>')}</div></div>` : ''}
-          ${m.cartoes ? `<div class="stat-section"><div class="stat-title">🟨🟥 CARTÕES</div><div class="stat-content">${m.cartoes.replace(/\n/g,'<br>')}</div></div>` : ''}
+          ${m.gols ? '<div class="stat-section"><div class="stat-title">⚽ GOLS</div><div class="stat-content">'+m.gols.replace(/\n/g,'<br>')+'</div></div>' : ''}
+          ${m.assistencias ? '<div class="stat-section"><div class="stat-title">👟 ASSISTÊNCIAS</div><div class="stat-content">'+m.assistencias.replace(/\n/g,'<br>')+'</div></div>' : ''}
+          ${m.defesas ? '<div class="stat-section"><div class="stat-title">🧤 DEFESAS</div><div class="stat-content">'+m.defesas.replace(/\n/g,'<br>')+'</div></div>' : ''}
+          ${m.cartoes ? '<div class="stat-section"><div class="stat-title">🟨🟥 CARTÕES</div><div class="stat-content">'+m.cartoes.replace(/\n/g,'<br>')+'</div></div>' : ''}
         </div>
         <div class="match-awards">
-          ${m.mvp ? `<div class="mvp-section"><div class="mvp-title">🏆 MVP</div><div class="mvp-name">⭐ ${m.mvp}</div></div>` : ''}
-          ${(m.menc1||m.menc2||m.menc3) ? `<div class="mentions-section"><div class="mentions-title">📋 MENÇÕES</div><div class="mentions-list">${m.menc1 ? `<div>🥇 ${m.menc1}</div>` : ''}${m.menc2 ? `<div>🥈 ${m.menc2}</div>` : ''}${m.menc3 ? `<div>🥉 ${m.menc3}</div>` : ''}</div></div>` : ''}
+          ${m.mvp ? '<div class="mvp-section"><div class="mvp-title">🏆 MVP</div><div class="mvp-name">⭐ '+m.mvp+'</div></div>' : ''}
+          ${(m.menc1||m.menc2||m.menc3) ? '<div class="mentions-section"><div class="mentions-title">📋 MENÇÕES</div><div class="mentions-list">'+(m.menc1 ? '<div>🥇 '+m.menc1+'</div>' : '')+(m.menc2 ? '<div>🥈 '+m.menc2+'</div>' : '')+(m.menc3 ? '<div>🥉 '+m.menc3+'</div>' : '')+'</div></div>' : ''}
         </div>
-        ${m.observacoes ? `<div class="match-observations"><div class="obs-title">📝 OBSERVAÇÕES</div><div class="obs-content">${m.observacoes}</div></div>` : ''}
+        ${m.observacoes ? '<div class="match-observations"><div class="obs-title">📝 OBSERVAÇÕES</div><div class="obs-content">'+m.observacoes+'</div></div>' : ''}
       </div>`;
       
-      let [g1,g2] = (m.placar||"0x0").split("x").map(Number);
-      [m.timeA, m.timeB].forEach(t => { if(!tabela[t]) tabela[t] = {p:0,v:0,e:0,d:0,gp:0,gc:0}; });
-      tabela[m.timeA].gp += g1; tabela[m.timeA].gc += g2;
-      tabela[m.timeB].gp += g2; tabela[m.timeB].gc += g1;
-      if(g1>g2){ tabela[m.timeA].p+=3; tabela[m.timeA].v++; tabela[m.timeB].d++; }
-      else if(g2>g1){ tabela[m.timeB].p+=3; tabela[m.timeB].v++; tabela[m.timeA].d++; }
-      else{ tabela[m.timeA].p++; tabela[m.timeB].p++; tabela[m.timeA].e++; tabela[m.timeB].e++; }
-    });
-    Object.entries(tabela).sort((a,b)=>b[1].p - a[1].p).forEach(([time, s], i) => {
-      tableList.innerHTML += `<div class="table-card"><div class="table-position">${i+1}º</div><div class="table-team">${time}</div><div class="table-stats">${s.v}V/${s.e}E/${s.d}D</div><div class="table-goals">${s.gp}:${s.gc}</div><div class="table-points">${s.p} pts</div></div>`;
-    });
+      var placarParts = (m.placar || "0x0").split("x");
+      var g1 = parseInt(placarParts[0]) || 0;
+      var g2 = parseInt(placarParts[1]) || 0;
+      
+      if(!tabela[m.timeA]) tabela[m.timeA] = {p:0,v:0,e:0,d:0,gp:0,gc:0};
+      if(!tabela[m.timeB]) tabela[m.timeB] = {p:0,v:0,e:0,d:0,gp:0,gc:0};
+      tabela[m.timeA].gp += g1;
+      tabela[m.timeA].gc += g2;
+      tabela[m.timeB].gp += g2;
+      tabela[m.timeB].gc += g1;
+      if(g1 > g2){
+        tabela[m.timeA].p += 3;
+        tabela[m.timeA].v++;
+        tabela[m.timeB].d++;
+      } else if(g2 > g1){
+        tabela[m.timeB].p += 3;
+        tabela[m.timeB].v++;
+        tabela[m.timeA].d++;
+      } else {
+        tabela[m.timeA].p++;
+        tabela[m.timeB].p++;
+        tabela[m.timeA].e++;
+        tabela[m.timeB].e++;
+      }
+    }
+    
+    var timesOrdenados = [];
+    for(var time in tabela) {
+      timesOrdenados.push({nome: time, pontos: tabela[time].p, stats: tabela[time]});
+    }
+    timesOrdenados.sort(function(a,b){ return b.pontos - a.pontos; });
+    for(var i = 0; i < timesOrdenados.length; i++) {
+      var s = timesOrdenados[i].stats;
+      tableContainer.innerHTML += '<div class="table-card"><div class="table-position">'+(i+1)+'º</div><div class="table-team">'+timesOrdenados[i].nome+'</div><div class="table-stats">'+s.v+'V/'+s.e+'E/'+s.d+'D</div><div class="table-goals">'+s.gp+':'+s.gc+'</div><div class="table-points">'+s.p+' pts</div></div>';
+    }
   }
 };
 
@@ -459,47 +619,75 @@ const Match = {
 const Lineup = {
   add(){
     if(!isAdmin){ Toast.show("🔒 Apenas administradores!"); return; }
+    var pNome = document.getElementById("pNome");
     if(!pNome.value.trim()){ Toast.show("Digite o nome!"); return; }
-    const jogador = encontrarJogador(pNome.value);
-    lineupRef.push({ nome: pNome.value, x: 50, y: 50, img: jogador?.img || null }).then(() => {
-      Logger.add("📋 Adicionou à Escalação", `Jogador: ${pNome.value}`);
+    var jogador = encontrarJogador(pNome.value);
+    lineupRef.push({ nome: pNome.value, x: 50, y: 50, img: jogador?.img || null }).then(function() {
+      Logger.add("📋 Adicionou à Escalação", "Jogador: " + pNome.value);
       Toast.show("Jogador adicionado!");
     });
     pNome.value = "";
   },
   render(data){
+    var field = document.getElementById("field");
+    if(!field) return;
     field.innerHTML = "";
     if(!data) return;
-    Object.entries(data).forEach(([id, p]) => {
-      let el = document.createElement("div");
+    
+    for(var id in data) {
+      var p = data[id];
+      var el = document.createElement("div");
       el.className = "player";
-      el.innerHTML = p.img ? `<img src="${p.img}" class="player-img" onerror="this.style.display='none'"><span>${p.nome}</span>` : `<span>${p.nome}</span>`;
+      if(p.img){
+        el.innerHTML = '<img src="'+p.img+'" class="player-img" onerror="this.style.display=\'none\'"><span>'+p.nome+'</span>';
+      } else {
+        el.innerHTML = '<span>'+p.nome+'</span>';
+      }
       el.style.left = p.x + "%";
       el.style.top = p.y + "%";
-      let drag = false, sx, sy, sl, st;
-      el.addEventListener("mousedown", (e) => {
-        e.preventDefault();
-        drag = true;
-        sx = e.clientX; sy = e.clientY;
-        sl = parseFloat(el.style.left); st = parseFloat(el.style.top);
-        el.style.cursor = "grabbing";
-      });
-      const move = (e) => {
-        if(!drag) return;
-        const rect = field.getBoundingClientRect();
-        let nx = sl + ((e.clientX - sx) / rect.width) * 100;
-        let ny = st + ((e.clientY - sy) / rect.height) * 100;
-        nx = Math.min(Math.max(nx,0),100);
-        ny = Math.min(Math.max(ny,0),100);
-        el.style.left = nx + "%";
-        el.style.top = ny + "%";
-        lineupRef.child(id).update({ x: nx, y: ny });
-      };
-      const up = () => { drag = false; el.style.cursor = "grab"; };
-      document.addEventListener("mousemove", move);
-      document.addEventListener("mouseup", up);
+      var dragging = false;
+      var startX, startY, startLeft, startTop;
+      
+      el.addEventListener("mousedown", function(e, id, el) {
+        return function(e) {
+          e.preventDefault();
+          dragging = true;
+          startX = e.clientX;
+          startY = e.clientY;
+          startLeft = parseFloat(el.style.left);
+          startTop = parseFloat(el.style.top);
+          el.style.cursor = "grabbing";
+          el.style.opacity = "0.7";
+          
+          function onMouseMove(e) {
+            if(!dragging) return;
+            var rect = field.getBoundingClientRect();
+            var deltaX = e.clientX - startX;
+            var deltaY = e.clientY - startY;
+            var newX = startLeft + (deltaX / rect.width) * 100;
+            var newY = startTop + (deltaY / rect.height) * 100;
+            newX = Math.min(Math.max(newX, 0), 100);
+            newY = Math.min(Math.max(newY, 0), 100);
+            el.style.left = newX + "%";
+            el.style.top = newY + "%";
+            lineupRef.child(id).update({ x: newX, y: newY });
+          }
+          
+          function onMouseUp() {
+            dragging = false;
+            el.style.cursor = "grab";
+            el.style.opacity = "1";
+            document.removeEventListener("mousemove", onMouseMove);
+            document.removeEventListener("mouseup", onMouseUp);
+          }
+          
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp);
+        };
+      }(null, id, el));
+      
       field.appendChild(el);
-    });
+    }
   }
 };
 
@@ -510,50 +698,21 @@ const Logger = {
     db.ref("logs").push({ usuario: currentUser, acao: action, detalhes: details, data: new Date().toLocaleString(), timestamp: firebase.database.ServerValue.TIMESTAMP });
   },
   render(){
-    const container = document.getElementById("logsList");
+    var container = document.getElementById("logsList");
     if(!container) return;
-    db.ref("logs").orderByChild("timestamp").once("value", snap => {
+    db.ref("logs").orderByChild("timestamp").once("value", function(snap) {
       container.innerHTML = "";
-      const logs = snap.val();
+      var logs = snap.val();
       if(!logs){ container.innerHTML = '<div class="no-logs">📭 Nenhum log</div>'; return; }
-      Object.entries(logs).sort((a,b)=>b[1].timestamp - a[1].timestamp).forEach(([id,log]) => {
-        let icon = log.acao.includes("Jogador") ? "👤" : log.acao.includes("Partida") ? "⚽" : log.acao.includes("Reset") ? "⚠️" : "📝";
-        container.innerHTML += `<div class="log-item"><div class="log-header"><span class="log-icon">${icon}</span><span class="log-usuario">${log.usuario}</span><span class="log-data">📅 ${log.data}</span></div><div class="log-acao">${log.acao}</div><div class="log-detalhes">${log.detalhes}</div></div>`;
-      });
-      const count = document.getElementById("logCount");
-      if(count) count.textContent = `${Object.keys(logs).length} logs`;
-    });
-  }
-};
-
-// ================= SYSTEM =================
-const System = {
-  reset(){
-    if(!isAdmin){ Toast.show("Sem permissão!"); return; }
-    if(confirm("⚠️ Resetar todos os dados? (LOGS serão mantidos)")){
-      playersRef.set(null); matchesRef.set(null); lineupRef.set(null);
-      Logger.add("⚠️ Reset Total", "Dados apagados");
-      Toast.show("Dados resetados!");
-      setTimeout(() => location.reload(), 1500);
-    }
-  }
-};
-
-// ================= LISTENERS =================
-playersRef.on("value", snap => Player.render(snap.val()));
-matchesRef.on("value", snap => { Match.render(snap.val()); Stats.processMatches(snap.val()); });
-lineupRef.on("value", snap => Lineup.render(snap.val()));
-
-// ================= SEARCH =================
-document.getElementById("searchPlayer")?.addEventListener("input", e => {
-  const term = e.target.value.toLowerCase();
-  document.querySelectorAll("#playersList .player-card-full").forEach(c => {
-    c.style.display = c.querySelector("h3")?.innerText.toLowerCase().includes(term) ? "block" : "none";
-  });
-});
-document.getElementById("searchStats")?.addEventListener("input", e => {
-  const term = e.target.value.toLowerCase();
-  document.querySelectorAll("#statsList .stats-card").forEach(c => {
-    c.style.display = c.querySelector(".stats-player-name")?.innerText.toLowerCase().includes(term) ? "flex" : "none";
-  });
-});
+      var logsArray = [];
+      for(var id in logs) {
+        logsArray.push({id: id, log: logs[id]});
+      }
+      logsArray.sort(function(a,b){ return b.log.timestamp - a.log.timestamp; });
+      for(var i = 0; i < logsArray.length; i++) {
+        var log = logsArray[i].log;
+        var icon = "📝";
+        if(log.acao.includes("Jogador")) icon = "👤";
+        else if(log.acao.includes("Partida")) icon = "⚽";
+        else if(log.acao.includes("Reset")) icon = "⚠️";
+        container.innerHTML += '<div class="log-item"><div class="log-header"><span
