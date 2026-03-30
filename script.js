@@ -74,7 +74,8 @@ const Toast = {
 const UI = {
   go(id, el) {
     document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-    document.getElementById(id).classList.add("active");
+    let target = document.getElementById(id);
+    if (target) target.classList.add("active");
     document.querySelectorAll(".menu div").forEach(m => m.classList.remove("active"));
     if (el) el.classList.add("active");
     if (id === "admin" && isAdmin) Logger.render();
@@ -219,7 +220,7 @@ const Stats = {
   }
 };
 
-// ================= PLAYERS =================
+// ================= PLAYERS (COM EDIÇÃO) =================
 const Player = {
   add() {
     if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
@@ -250,6 +251,59 @@ const Player = {
     document.getElementById("phy").value = "";
   },
   
+  edit(id, jogador) {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
+    document.getElementById("editId").value = id;
+    document.getElementById("editNome").value = jogador.nome || "";
+    document.getElementById("editImg").value = jogador.img || "";
+    document.getElementById("editOvr").value = jogador.ovr || 0;
+    document.getElementById("editPac").value = jogador.pac || "0";
+    document.getElementById("editSho").value = jogador.sho || "0";
+    document.getElementById("editPas").value = jogador.pas || "0";
+    document.getElementById("editDri").value = jogador.dri || "0";
+    document.getElementById("editDef").value = jogador.def || "0";
+    document.getElementById("editPhy").value = jogador.phy || "0";
+    document.getElementById("editModal").style.display = "flex";
+  },
+  
+  update() {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
+    let id = document.getElementById("editId").value;
+    if (!id) return;
+    playersRef.child(id).update({
+      nome: document.getElementById("editNome").value,
+      img: document.getElementById("editImg").value || "https://via.placeholder.com/150?text=Jogador",
+      ovr: parseInt(document.getElementById("editOvr").value) || 0,
+      pac: document.getElementById("editPac").value || "0",
+      sho: document.getElementById("editSho").value || "0",
+      pas: document.getElementById("editPas").value || "0",
+      dri: document.getElementById("editDri").value || "0",
+      def: document.getElementById("editDef").value || "0",
+      phy: document.getElementById("editPhy").value || "0"
+    }).then(() => {
+      Logger.add("✏️ Editou Jogador", "Nome: " + document.getElementById("editNome").value);
+      Toast.show("Jogador atualizado!");
+      this.closeModal();
+    });
+  },
+  
+  delete() {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
+    let id = document.getElementById("editId").value;
+    if (!id) return;
+    if (confirm("⚠️ Excluir este jogador?")) {
+      playersRef.child(id).remove().then(() => {
+        Logger.add("🗑️ Excluiu Jogador", "ID: " + id);
+        Toast.show("Jogador excluído!");
+        this.closeModal();
+      });
+    }
+  },
+  
+  closeModal() {
+    document.getElementById("editModal").style.display = "none";
+  },
+  
   render(data) {
     let container = document.getElementById("playersList");
     if (!container) return;
@@ -262,10 +316,36 @@ const Player = {
     }
     jogadores.sort((a, b) => b.dados.ovr - a.dados.ovr);
     
+    // Para não-admin: apenas visualização
+    if (!isAdmin) {
+      for (let i = 0; i < jogadores.length; i++) {
+        let p = jogadores[i].dados;
+        container.innerHTML += `
+        <div class="player-card-full">
+          <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
+          <h3>${p.nome}</h3>
+          <div class="player-ovr">OVR ${p.ovr}</div>
+          <div class="player-attrs-grid">
+            <div class="attr-item"><span>⚡</span> ${p.pac}</div>
+            <div class="attr-item"><span>🎯</span> ${p.sho}</div>
+            <div class="attr-item"><span>🎯</span> ${p.pas}</div>
+            <div class="attr-item"><span>💫</span> ${p.dri}</div>
+            <div class="attr-item"><span>🛡️</span> ${p.def}</div>
+            <div class="attr-item"><span>💪</span> ${p.phy}</div>
+          </div>
+          <div class="view-only-badge">👀 Visualização</div>
+        </div>`;
+      }
+      return;
+    }
+    
+    // Para admin: com edição
     for (let i = 0; i < jogadores.length; i++) {
       let p = jogadores[i].dados;
+      let id = jogadores[i].id;
+      let jogadorJSON = JSON.stringify(p).replace(/"/g, '&quot;');
       container.innerHTML += `
-      <div class="player-card-full">
+      <div class="player-card-full admin-card" onclick="Player.edit('${id}', ${jogadorJSON})">
         <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
         <h3>${p.nome}</h3>
         <div class="player-ovr">OVR ${p.ovr}</div>
@@ -277,6 +357,7 @@ const Player = {
           <div class="attr-item"><span>🛡️</span> ${p.def}</div>
           <div class="attr-item"><span>💪</span> ${p.phy}</div>
         </div>
+        <div class="edit-badge">✏️ Clique para editar</div>
       </div>`;
     }
   }
@@ -583,6 +664,11 @@ matchesRef.on("value", snap => {
   Stats.processMatches(snap.val());
 });
 lineupRef.on("value", snap => Lineup.render(snap.val()));
+
+// ================= FUNÇÕES GLOBAIS =================
+function closeEditModal() {
+  Player.closeModal();
+}
 
 // ================= SEARCH =================
 document.getElementById("searchPlayer")?.addEventListener("input", e => {
