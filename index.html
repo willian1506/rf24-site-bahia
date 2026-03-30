@@ -2,13 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Clube Esporte Salvador - ONLINE AAA</title>
+<title>Clube Esporte Salvador - Sistema Completo</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="style.css">
 
-  <link rel="icon" type="image/png" href="favicon.png">
+<!-- ================= FAVICON DO BAHIA (logo na aba) ================= -->
+<link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/960px-Esporte_Clube_Bahia_logo.svg.png">
+<link rel="shortcut icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/960px-Esporte_Clube_Bahia_logo.svg.png">
 
 <!-- ================= FIREBASE CDN ================= -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -29,7 +31,9 @@
 
 <!-- ================= HEADER ================= -->
 <header class="header">
-  <h1>Clube Esporte Salvador</h1>
+  <div class="header-container">
+    <h1>Clube Esporte Salvador</h1>
+  </div>
 </header>
 
 <!-- ================= MENU ================= -->
@@ -48,7 +52,7 @@
 
   <div class="hero">
     <div class="club-logo-container">
-      <img src="https://images-ext-1.discordapp.net/external/p5eaHKQJ5fDQDwNOpt_FUbXYbgxc7iWP652F5kmDZKs/%3Fsize%3D2048/https/cdn.discordapp.com/icons/1444161827113140226/3d299d4be752faf8374189e5c4a05f4d.png?format=webp&quality=lossless" alt="Clube Esporte Salvador" class="club-logo-hero">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/960px-Esporte_Clube_Bahia_logo.svg.png" alt="Clube Esporte Salvador" class="club-logo-hero">
       <div class="club-logo-glow"></div>
     </div>
     <h2 class="hero-title">Bem-vindo ao site oficial do <span class="highlight">Clube Esporte Salvador</span> do Real Futebol 24!</h2>
@@ -75,7 +79,6 @@
   </div>
 
 </section>
-
 
 <!-- ================= JOGADORES ================= -->
 <section id="players" class="screen">
@@ -230,7 +233,19 @@
     <button onclick="Lineup.add()">Adicionar ao campo</button>
   </div>
 
-  <!-- BOTÃO RESET APENAS AQUI -->
+  <!-- SEÇÃO DE LOGS -->
+  <div class="admin-box logs-box">
+    <h3>📜 HISTÓRICO DE AÇÕES (LOGS)</h3>
+    <div class="logs-header">
+      <span id="logCount" class="log-count">Carregando...</span>
+      <small style="opacity: 0.7;">⚠️ Estes logs são permanentes e não podem ser apagados</small>
+    </div>
+    <div id="logsList" class="logs-container">
+      <div class="loading-logs">Carregando histórico...</div>
+    </div>
+  </div>
+
+  <!-- BOTÃO RESET (não apaga logs) -->
   <button class="danger" onclick="System.reset()">⚠️ RESET TOTAL DO BANCO DE DADOS</button>
 
 </section>
