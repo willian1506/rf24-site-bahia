@@ -226,11 +226,15 @@ button:hover{
   padding:6px 12px;
   border-radius:10px;
   cursor:grab;
-  transition:0.2s;
+  user-select: none; /* Impede seleção de texto durante o drag */
+  transition:0.1s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  font-weight: bold;
+  z-index: 10;
 }
 
-.player:hover{
-  transform:scale(1.1);
+.player:active{
+  cursor:grabbing;
 }
 
 /* ================= TOAST ================= */
