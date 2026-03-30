@@ -1468,3 +1468,40 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   90% { opacity: 1; visibility: visible; }
   100% { opacity: 0; visibility: hidden; display: none; }
 }
+
+/* Cards para não-admin (sem clique) */
+.player-card-full {
+  cursor: default;
+  transition: 0.3s;
+}
+
+.player-card-full.admin-card {
+  cursor: pointer;
+}
+
+.player-card-full.admin-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(198,40,40,0.3);
+}
+
+.view-only-badge {
+  margin-top: 10px;
+  font-size: 10px;
+  opacity: 0.5;
+  text-align: center;
+  color: #888;
+}
+
+.edit-badge {
+  margin-top: 10px;
+  font-size: 10px;
+  opacity: 0.6;
+  text-align: center;
+  transition: 0.3s;
+  color: #ffd966;
+}
+
+.admin-card:hover .edit-badge {
+  opacity: 1;
+  color: #fff;
+}
