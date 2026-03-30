@@ -89,7 +89,7 @@ body {
   box-shadow: 0 0 25px #c62828;
 }
 
-/* ================= SCREENS (CORRIGIDO) ================= */
+/* ================= SCREENS ================= */
 .screen {
   display: none;
   padding: 20px;
@@ -311,6 +311,24 @@ body {
 .match-date-time {
   font-size: 12px;
   opacity: 0.8;
+}
+
+.match-edit-btn {
+  background: #ffc107;
+  color: #000;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: 0.2s;
+}
+
+.match-edit-btn:hover {
+  background: #ff9800;
+  transform: scale(1.05);
 }
 
 .match-teams-container {
@@ -695,27 +713,45 @@ body {
   display: block;
 }
 
-.news-delete-btn {
+.news-actions {
   position: absolute;
   top: 10px;
   right: 10px;
+  display: flex;
+  gap: 5px;
+  z-index: 10;
+}
+
+.news-edit-btn, .news-delete-btn {
   background: rgba(0, 0, 0, 0.7);
-  border: 1px solid #ff0000;
-  color: #ff0000;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 11px;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 15px;
+  font-size: 10px;
   font-weight: bold;
   cursor: pointer;
   transition: 0.2s;
-  z-index: 10;
+}
+
+.news-edit-btn {
+  background: #ffc107;
+  color: #000;
+}
+
+.news-edit-btn:hover {
+  background: #ff9800;
+  transform: scale(1.05);
+}
+
+.news-delete-btn {
+  border: 1px solid #ff0000;
+  color: #ff0000;
 }
 
 .news-delete-btn:hover {
   background: #ff0000;
   color: white;
   transform: scale(1.05);
-  box-shadow: 0 0 10px #ff0000;
 }
 
 .news-content {
@@ -1228,49 +1264,4 @@ button:hover {
     padding: 4px 6px;
     font-size: 14px;
   }
-}
-
-/* ================= BOTÕES DE EDIÇÃO ================= */
-.match-edit-btn, .news-edit-btn {
-  background: #ffc107;
-  color: #000;
-  border: none;
-  padding: 4px 8px;
-  border-radius: 15px;
-  font-size: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-left: 8px;
-  transition: 0.2s;
-}
-
-.match-edit-btn:hover, .news-edit-btn:hover {
-  background: #ff9800;
-  transform: scale(1.05);
-}
-
-.news-actions {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  gap: 5px;
-  z-index: 10;
-}
-
-.news-delete-btn {
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid #ff0000;
-  color: #ff0000;
-  padding: 4px 8px;
-  border-radius: 15px;
-  font-size: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.news-delete-btn:hover {
-  background: #ff0000;
-  color: white;
 }
