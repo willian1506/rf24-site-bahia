@@ -8,9 +8,15 @@
 
 <link rel="stylesheet" href="style.css">
 
-<!-- ================= FAVICON DO BAHIA (logo na aba) ================= -->
-<link rel="icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/960px-Esporte_Clube_Bahia_logo.svg.png">
-<link rel="shortcut icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/960px-Esporte_Clube_Bahia_logo.svg.png">
+<!-- ================= FAVICON DO BAHIA (VERSÃO PNG QUE FUNCIONA) ================= -->
+<!-- Tamanhos padrão para todos os navegadores -->
+<link rel="icon" type="image/png" sizes="16x16" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/16px-Esporte_Clube_Bahia_logo.svg.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/32px-Esporte_Clube_Bahia_logo.svg.png">
+<link rel="icon" type="image/png" sizes="48x48" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/48px-Esporte_Clube_Bahia_logo.svg.png">
+<link rel="shortcut icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/32px-Esporte_Clube_Bahia_logo.svg.png">
+
+<!-- Fallback (caso a imagem não carregue, mostra um escudo vermelho com a letra B) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23c62828'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3EB%3C/text%3E%3C/svg%3E">
 
 <!-- ================= FIREBASE CDN ================= -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
