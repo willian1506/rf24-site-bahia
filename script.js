@@ -772,3 +772,16 @@ document.getElementById("searchStats")?.addEventListener("input", e => {
 });
 
 console.log("✅ Script carregado com sucesso!");
+
+// ================= FUNÇÃO PARA EXPANDIR/RECOLHER ESCALAÇÃO =================
+function toggleMatchLineup(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.toggle-icon');
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    icon.textContent = '▼';
+  } else {
+    content.style.display = 'none';
+    icon.textContent = '▶';
+  }
+}
