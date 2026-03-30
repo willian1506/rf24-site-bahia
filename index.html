@@ -3,69 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <title>Clube Esporte Salvador - Sistema Completo</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <link rel="stylesheet" href="style.css">
-
-<!-- ================= FAVICON ================= -->
 <link rel="icon" type="image/png" sizes="32x32" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/32px-Esporte_Clube_Bahia_logo.svg.png">
-<link rel="shortcut icon" type="image/png" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/32px-Esporte_Clube_Bahia_logo.svg.png">
-
-<!-- ================= FIREBASE CDN ================= -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
 </head>
-
 <body>
 
-<!-- ================= LOADER ================= -->
 <div id="loader">
   <div class="spinner"></div>
   <h2>Conectando ao servidor...</h2>
 </div>
 
-<!-- ================= SCRIPT DE EMERGÊNCIA PARA REMOVER LOADER ================= -->
 <script>
-  // Função que remove o loader de qualquer jeito
-  (function() {
-    function removerLoader() {
-      var loader = document.getElementById("loader");
-      if (loader) {
-        loader.style.display = "none";
-        loader.style.visibility = "hidden";
-        loader.style.opacity = "0";
-        console.log("✅ Loader removido com sucesso!");
-      }
-    }
-    
-    // Remove imediatamente se já estiver carregado
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", removerLoader);
-    } else {
-      removerLoader();
-    }
-    
-    // Timeouts de segurança (garante que vai sumir)
-    setTimeout(removerLoader, 500);
-    setTimeout(removerLoader, 1000);
-    setTimeout(removerLoader, 2000);
-    setTimeout(removerLoader, 3000);
-  })();
+  setTimeout(function() {
+    var loader = document.getElementById("loader");
+    if(loader) loader.style.display = "none";
+  }, 1000);
 </script>
 
-<!-- ================= TOAST ================= -->
 <div id="toast"></div>
 
-<!-- ================= HEADER ================= -->
 <header class="header">
   <div class="header-container">
     <h1>Clube Esporte Salvador</h1>
   </div>
 </header>
 
-<!-- ================= MENU ================= -->
 <nav class="menu">
   <div onclick="UI.go('home',this)" class="active">🏠 Início</div>
   <div onclick="UI.go('players',this)">👥 Jogadores</div>
@@ -76,9 +41,7 @@
   <div onclick="openAdmin(this)">⚙️ Admin</div>
 </nav>
 
-<!-- ================= HOME ================= -->
 <section id="home" class="screen active">
-
   <div class="hero">
     <div class="club-logo-container">
       <img src="https://images-ext-1.discordapp.net/external/p5eaHKQJ5fDQDwNOpt_FUbXYbgxc7iWP652F5kmDZKs/%3Fsize%3D2048/https/cdn.discordapp.com/icons/1444161827113140226/3d299d4be752faf8374189e5c4a05f4d.png?format=webp&quality=lossless" alt="Clube Esporte Salvador" class="club-logo-hero">
@@ -87,86 +50,56 @@
     <h2 class="hero-title">Bem-vindo ao site oficial do <span class="highlight">Clube Esporte Salvador</span> do Real Futebol 24!</h2>
     <p class="hero-subtitle">🏆 Clube Esporte Salvador - O gigante do Real Futebol 24 🏆</p>
   </div>
-
   <div class="history">
     <h3>📖 História do Clube</h3>
-    <p>
-      Um clube grandioso, forjado na luta e na superação, que nunca desistiu de conquistar seu espaço.
-    </p>
-    <p>
-      A verdadeira virada de chave veio com a chegada do diretor <b class="highlight-name">MonkeyWsp0</b>, ao lado de <b class="highlight-name">Stormy1835</b> e <b class="highlight-name">Willian1506</b>.
-    </p>
-    <p>
-      Dentro de campo, Stormy1835 e Willian1506 dominaram com suas habilidades, enquanto MonkeyWsp0 estruturou o clube com uma gestão sólida.
-    </p>
-    <p>
-      De desacreditado, o time virou líder absoluto, conquistando respeito e impondo seu jogo.
-    </p>
-    <p>
-      Hoje, o Clube Esporte Salvador é símbolo de evolução, união e vitória.
-    </p>
+    <p>Um clube grandioso, forjado na luta e na superação, que nunca desistiu de conquistar seu espaço.</p>
+    <p>A verdadeira virada de chave veio com a chegada do diretor <b class="highlight-name">MonkeyWsp0</b>, ao lado de <b class="highlight-name">Stormy1835</b> e <b class="highlight-name">Willian1506</b>.</p>
+    <p>Dentro de campo, Stormy1835 e Willian1506 dominaram com suas habilidades, enquanto MonkeyWsp0 estruturou o clube com uma gestão sólida.</p>
+    <p>De desacreditado, o time virou líder absoluto, conquistando respeito e impondo seu jogo.</p>
+    <p>Hoje, o Clube Esporte Salvador é símbolo de evolução, união e vitória.</p>
   </div>
-
 </section>
 
-<!-- ================= JOGADORES ================= -->
 <section id="players" class="screen">
   <h2>👥 Jogadores</h2>
-
   <div class="top-bar">
     <input id="searchPlayer" placeholder="🔍 Buscar jogador...">
   </div>
-
   <div id="playersList" class="grid"></div>
 </section>
 
-<!-- ================= PARTIDAS ================= -->
 <section id="matches" class="screen">
   <h2>📊 Partidas</h2>
   <div id="matchesList" class="matches-container"></div>
 </section>
 
-<!-- ================= TABELA ================= -->
 <section id="tables" class="screen">
   <h2>🏆 Tabela de Classificação</h2>
   <div id="tableList" class="list"></div>
 </section>
 
-<!-- ================= ESTATÍSTICAS ================= -->
 <section id="scorers" class="screen">
   <h2>📊 Estatísticas dos Jogadores</h2>
-  
   <div class="top-bar">
     <input id="searchStats" placeholder="🔍 Buscar jogador...">
   </div>
-  
   <div id="statsList" class="stats-grid"></div>
 </section>
 
-<!-- ================= ESCALAÇÃO ================= -->
 <section id="lineup" class="screen">
   <h2>📋 Escalação Tática</h2>
-
-  <div class="formation-info">
-    ⚽ Arraste os jogadores livremente no campo ⚽
-  </div>
-
+  <div class="formation-info">⚽ Arraste os jogadores livremente no campo ⚽</div>
   <div class="field" id="field"></div>
 </section>
 
-<!-- ================= ADMIN ================= -->
 <section id="admin" class="screen">
-
   <h2>⚙️ Painel Administrativo</h2>
 
-  <!-- JOGADOR -->
   <div class="admin-box">
     <h3>➕ Adicionar Jogador</h3>
-
     <input id="nome" placeholder="Nome do jogador">
     <input id="img" placeholder="URL da imagem">
     <input id="ovr" placeholder="Overall (OVR)">
-
     <div class="grid-attrs">
       <input id="pac" placeholder="Ritmo">
       <input id="sho" placeholder="Chute">
@@ -175,97 +108,54 @@
       <input id="def" placeholder="Defesa">
       <input id="phy" placeholder="Físico">
     </div>
-
     <button onclick="Player.add()">✅ Adicionar Jogador</button>
   </div>
 
-  <!-- PARTIDA -->
   <div class="admin-box">
     <h3>⚽ Adicionar Partida</h3>
-
     <div style="margin-bottom: 10px;">
-      <label style="font-size: 12px; opacity: 0.8;">🏆 Logo da Liga / Tipo</label>
       <input id="ligaLogo" placeholder="URL da logo da liga">
-      <select id="tipoPartida" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;">
+      <select id="tipoPartida" style="width:100%;padding:10px;margin:5px 0;border-radius:10px;background:#091d2a;color:white;">
         <option value="liga">🏆 Partida de Liga</option>
         <option value="amistoso">🤝 Amistoso</option>
         <option value="copa">🏅 Copa</option>
       </select>
     </div>
-
-    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-      <div style="flex: 1;">
-        <label style="font-size: 12px; opacity: 0.8;">Time A</label>
-        <input id="timeA" placeholder="Nome do time A">
-        <input id="timeALogo" placeholder="URL da logo">
-      </div>
-      <div style="flex: 1;">
-        <label style="font-size: 12px; opacity: 0.8;">Time B</label>
-        <input id="timeB" placeholder="Nome do time B">
-        <input id="timeBLogo" placeholder="URL da logo">
-      </div>
+    <div style="display:flex;gap:10px;">
+      <div style="flex:1;"><input id="timeA" placeholder="Time A"><input id="timeALogo" placeholder="URL da logo"></div>
+      <div style="flex:1;"><input id="timeB" placeholder="Time B"><input id="timeBLogo" placeholder="URL da logo"></div>
     </div>
-    
     <input id="placar" placeholder="Placar (ex: 2x1)">
-    
-    <div style="display: flex; gap: 10px; margin: 10px 0;">
-      <div style="flex: 1;">
-        <label style="font-size: 12px; opacity: 0.8;">📅 Data</label>
-        <input type="date" id="partidaData" style="width: 100%; padding: 10px; border-radius: 10px; background: #091d2a; color: white;">
-      </div>
-      <div style="flex: 1;">
-        <label style="font-size: 12px; opacity: 0.8;">⏰ Horário</label>
-        <input type="time" id="partidaHora" style="width: 100%; padding: 10px; border-radius: 10px; background: #091d2a; color: white;">
-      </div>
+    <div style="display:flex;gap:10px;margin:10px 0;">
+      <div style="flex:1;"><input type="date" id="partidaData" style="width:100%;padding:10px;border-radius:10px;background:#091d2a;color:white;"></div>
+      <div style="flex:1;"><input type="time" id="partidaHora" style="width:100%;padding:10px;border-radius:10px;background:#091d2a;color:white;"></div>
     </div>
-    
-    <textarea id="golsList" placeholder="⚽ GOLS (ex: Willian 15&#10;Stormy 32)" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-    <textarea id="assistsList" placeholder="👟 ASSISTÊNCIAS (ex: Willian 15)" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-    <textarea id="defesasList" placeholder="🧤 DEFESAS (ex: Goleiro 5)" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-    <textarea id="cartoesList" placeholder="🟨🟥 CARTÕES (ex: Willian 30 amarelo)" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-    
+    <textarea id="golsList" placeholder="⚽ GOLS (ex: Willian 15)" rows="2" style="width:100%;padding:10px;margin:5px 0;border-radius:10px;background:#091d2a;color:white;"></textarea>
+    <textarea id="assistsList" placeholder="👟 ASSISTÊNCIAS (ex: Willian 15)" rows="2" style="width:100%;padding:10px;margin:5px 0;border-radius:10px;background:#091d2a;color:white;"></textarea>
+    <textarea id="defesasList" placeholder="🧤 DEFESAS (ex: Goleiro 5)" rows="2" style="width:100%;padding:10px;margin:5px 0;border-radius:10px;background:#091d2a;color:white;"></textarea>
+    <textarea id="cartoesList" placeholder="🟨🟥 CARTÕES (ex: Willian 30 amarelo)" rows="2" style="width:100%;padding:10px;margin:5px 0;border-radius:10px;background:#091d2a;color:white;"></textarea>
     <input id="mvp" placeholder="🏆 Melhor da Partida (MVP)">
-    
-    <div style="margin: 10px 0;">
-      <input id="men1" placeholder="🥇 1ª Menção">
-      <input id="men2" placeholder="🥈 2ª Menção">
-      <input id="men3" placeholder="🥉 3ª Menção">
-    </div>
-    
-    <textarea id="obsPartida" placeholder="📝 Observações da partida" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-    
+    <div style="margin:10px 0;"><input id="men1" placeholder="🥇 1ª Menção"><input id="men2" placeholder="🥈 2ª Menção"><input id="men3" placeholder="🥉 3ª Menção"></div>
+    <textarea id="obsPartida" placeholder="📝 Observações" rows="2" style="width:100%;padding:10px;margin:5px 0;border-radius:10px;background:#091d2a;color:white;"></textarea>
     <button onclick="Match.add()">✅ Adicionar Partida</button>
   </div>
 
-  <!-- ESCALAÇÃO -->
   <div class="admin-box">
     <h3>📋 Adicionar à Escalação</h3>
     <input id="pNome" placeholder="Nome do jogador">
     <button onclick="Lineup.add()">➕ Adicionar ao campo</button>
   </div>
 
-  <!-- LOGS -->
   <div class="admin-box logs-box">
     <h3>📜 HISTÓRICO DE AÇÕES (LOGS)</h3>
-    <div class="logs-header">
-      <span id="logCount" class="log-count">Carregando...</span>
-      <small style="opacity: 0.7;">⚠️ Logs permanentes</small>
-    </div>
-    <div id="logsList" class="logs-container">
-      <div class="loading-logs">Carregando histórico...</div>
-    </div>
+    <div class="logs-header"><span id="logCount">Carregando...</span><small>⚠️ Logs permanentes</small></div>
+    <div id="logsList" class="logs-container"><div class="loading-logs">Carregando...</div></div>
   </div>
 
-  <!-- BOTÕES ADMIN -->
-  <button class="danger" onclick="System.reset()">⚠️ RESET TOTAL DO BANCO</button>
-  <button onclick="logoutAdmin()" style="margin-top: 15px; background: #333;">🚪 Sair do Admin</button>
-
+  <button class="danger" onclick="System.reset()">⚠️ RESET TOTAL</button>
+  <button onclick="logoutAdmin()" style="margin-top:15px;background:#333;">🚪 Sair do Admin</button>
 </section>
 
-
-
-<!-- ================= SCRIPT ================= -->
 <script src="script.js"></script>
-
 </body>
 </html>
