@@ -1031,9 +1031,10 @@ button:hover {
 }
 
 /* ================= NOTÍCIAS ================= */
+/* ================= NOTÍCIAS ================= */
 .news-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 25px;
   padding: 10px;
 }
@@ -1044,6 +1045,9 @@ button:hover {
   overflow: hidden;
   transition: 0.3s;
   border: 1px solid rgba(198, 40, 40, 0.3);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .news-card:hover {
@@ -1053,9 +1057,12 @@ button:hover {
 }
 
 .news-image {
+  position: relative;
   width: 100%;
   height: 200px;
   overflow: hidden;
+  background: #0a2030;
+  flex-shrink: 0;
 }
 
 .news-image img {
@@ -1069,14 +1076,40 @@ button:hover {
   transform: scale(1.05);
 }
 
+.news-delete-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid #ff0000;
+  color: #ff0000;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  z-index: 10;
+}
+
+.news-delete-btn:hover {
+  background: #ff0000;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #ff0000;
+}
+
 .news-content {
-  padding: 20px;
+  padding: 18px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .news-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 12px;
@@ -1087,6 +1120,8 @@ button:hover {
   font-weight: 800;
   color: #fff;
   margin: 0;
+  line-height: 1.3;
+  flex: 1;
 }
 
 .news-date {
@@ -1095,6 +1130,7 @@ button:hover {
   background: rgba(0, 0, 0, 0.3);
   padding: 4px 10px;
   border-radius: 20px;
+  white-space: nowrap;
 }
 
 .news-description {
@@ -1102,6 +1138,11 @@ button:hover {
   line-height: 1.5;
   color: #e0e0e0;
   margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .no-news {
@@ -1110,19 +1151,44 @@ button:hover {
   opacity: 0.7;
   font-style: italic;
   font-size: 16px;
+  grid-column: 1 / -1;
 }
 
+/* Responsividade */
 @media (max-width: 768px) {
   .news-grid {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .news-image {
+    height: 180px;
   }
   
   .news-header {
     flex-direction: column;
     align-items: flex-start;
   }
+  
+  .news-date {
+    white-space: normal;
+  }
+  
+  .news-title {
+    font-size: 16px;
+  }
+  
+  .news-description {
+    font-size: 13px;
+    -webkit-line-clamp: 3;
+  }
 }
 
+@media (min-width: 1200px) {
+  .news-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 /* ================= BOTÃO DELETAR NOTÍCIA ================= */
 .news-image {
   position: relative;
