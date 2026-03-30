@@ -16,8 +16,7 @@ const db = firebase.database();
 const ADMINS = [
   {user:"willian1506", pass:"willian123", nome:"Willian"},
   {user:"stormy", pass:"183524", nome:"Stormy"},
-  {user:"Mkz", pass:"12456453", nome:"Mkz"},
-  {user:"gusline1", pass:"18376423", nome:"Gusline"}
+  {user:"Mkz", pass:"12456453", nome:"Mkz"}
 ];
 
 let isAdmin = localStorage.getItem("admin") === "true";
@@ -71,23 +70,42 @@ const Toast = {
   }
 };
 
-// ================= UI =================
+// ================= UI (DEFINIDA ANTES DE SER USADA) =================
 const UI = {
   go(id, el) {
-    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    console.log("Mudando para:", id);
+    let screens = document.querySelectorAll(".screen");
+    for (let i = 0; i < screens.length; i++) {
+      screens[i].classList.remove("active");
+    }
     let target = document.getElementById(id);
-    if (target) target.classList.add("active");
-    document.querySelectorAll(".menu div").forEach(m => m.classList.remove("active"));
+    if (target) {
+      target.classList.add("active");
+      console.log("Tela ativada:", id);
+    } else {
+      console.log("Tela não encontrada:", id);
+    }
+    let menus = document.querySelectorAll(".menu div");
+    for (let i = 0; i < menus.length; i++) {
+      menus[i].classList.remove("active");
+    }
     if (el) el.classList.add("active");
-    if (id === "admin" && isAdmin) Logger.render();
-    if (id === "scorers") Stats.render();
+    if (id === "admin" && isAdmin && Logger.render) Logger.render();
+    if (id === "scorers" && Stats.render) Stats.render();
   }
 };
+
+// ================= LOADER =================
+setTimeout(function() {
+  let loader = document.getElementById("loader");
+  if (loader) loader.style.display = "none";
+}, 1000);
 
 // ================= DATABASE REF =================
 const playersRef = db.ref("players");
 const matchesRef = db.ref("matches");
 const lineupRef = db.ref("lineup");
+const newsRef = db.ref("news");
 
 let jogadoresLista = [];
 
@@ -116,74 +134,6 @@ function encontrarJogador(nomeDigitado) {
   }
   return null;
 }
-
-// ================= NOTÍCIAS =================
-const News = {
-  add() {
-    if (!isAdmin) { Toast.show("🔒 Apenas administradores podem adicionar notícias!"); return; }
-    
-    let title = document.getElementById("newsTitle").value.trim();
-    let image = document.getElementById("newsImage").value.trim();
-    let desc = document.getElementById("newsDesc").value.trim();
-    
-    if (!title) { Toast.show("Digite o título da notícia!"); return; }
-    if (!desc) { Toast.show("Digite a descrição da notícia!"); return; }
-    
-    const newsRef = db.ref("news");
-    newsRef.push({
-      titulo: title,
-      imagem: image || "https://via.placeholder.com/400x200?text=Sem+Imagem",
-      descricao: desc,
-      data: new Date().toLocaleString(),
-      timestamp: Date.now()
-    }).then(() => {
-      Logger.add("📰 Adicionou Notícia", `Título: ${title}`);
-      Toast.show("Notícia publicada!");
-    });
-    
-    document.getElementById("newsTitle").value = "";
-    document.getElementById("newsImage").value = "";
-    document.getElementById("newsDesc").value = "";
-  },
-  
-  render(data) {
-    let container = document.getElementById("newsList");
-    if (!container) return;
-    container.innerHTML = "";
-    
-    if (!data) {
-      container.innerHTML = '<div class="no-news">📭 Nenhuma notícia publicada ainda</div>';
-      return;
-    }
-    
-    let noticias = [];
-    for (let id in data) {
-      noticias.push({ id: id, dados: data[id] });
-    }
-    noticias.sort((a, b) => (b.dados.timestamp || 0) - (a.dados.timestamp || 0));
-    
-    for (let i = 0; i < noticias.length; i++) {
-      let n = noticias[i].dados;
-      container.innerHTML += `
-      <div class="news-card">
-        <div class="news-image">
-          <img src="${n.imagem}" onerror="this.src='https://via.placeholder.com/400x200?text=Imagem+não+disponível'">
-        </div>
-        <div class="news-content">
-          <div class="news-header">
-            <h3 class="news-title">${n.titulo}</h3>
-            <span class="news-date">📅 ${n.data || "Data não informada"}</span>
-          </div>
-          <p class="news-description">${n.descricao}</p>
-        </div>
-      </div>`;
-    }
-  }
-};
-
-// Adicione este listener no final do arquivo, junto com os outros listeners:
-const newsRef = db.ref("news");
-newsRef.on("value", snap => News.render(snap.val()));
 
 // ================= ESTATÍSTICAS =================
 const Stats = {
@@ -289,7 +239,7 @@ const Stats = {
   }
 };
 
-// ================= PLAYERS (COM EDIÇÃO) =================
+// ================= PLAYERS =================
 const Player = {
   add() {
     if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
@@ -385,7 +335,6 @@ const Player = {
     }
     jogadores.sort((a, b) => b.dados.ovr - a.dados.ovr);
     
-    // Para não-admin: apenas visualização
     if (!isAdmin) {
       for (let i = 0; i < jogadores.length; i++) {
         let p = jogadores[i].dados;
@@ -408,7 +357,6 @@ const Player = {
       return;
     }
     
-    // Para admin: com edição
     for (let i = 0; i < jogadores.length; i++) {
       let p = jogadores[i].dados;
       let id = jogadores[i].id;
@@ -665,6 +613,88 @@ const Lineup = {
   }
 };
 
+// ================= NOTÍCIAS =================
+const News = {
+  add() {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores podem adicionar notícias!"); return; }
+    
+    let title = document.getElementById("newsTitle").value.trim();
+    let image = document.getElementById("newsImage").value.trim();
+    let desc = document.getElementById("newsDesc").value.trim();
+    
+    if (!title) { Toast.show("Digite o título da notícia!"); return; }
+    if (!desc) { Toast.show("Digite a descrição da notícia!"); return; }
+    
+    newsRef.push({
+      titulo: title,
+      imagem: image || "https://via.placeholder.com/400x200?text=Sem+Imagem",
+      descricao: desc,
+      data: new Date().toLocaleString(),
+      timestamp: Date.now()
+    }).then(() => {
+      Logger.add("📰 Adicionou Notícia", `Título: ${title}`);
+      Toast.show("Notícia publicada!");
+    });
+    
+    document.getElementById("newsTitle").value = "";
+    document.getElementById("newsImage").value = "";
+    document.getElementById("newsDesc").value = "";
+  },
+  
+  delete(id, titulo) {
+    if (!isAdmin) { Toast.show("🔒 Apenas administradores podem deletar notícias!"); return; }
+    if (confirm(`⚠️ Tem certeza que deseja deletar a notícia "${titulo}"?`)) {
+      newsRef.child(id).remove().then(() => {
+        Logger.add("🗑️ Deletou Notícia", `Título: ${titulo}`);
+        Toast.show("Notícia deletada!");
+      });
+    }
+  },
+  
+  render(data) {
+    let container = document.getElementById("newsList");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    if (!data) {
+      container.innerHTML = '<div class="no-news">📭 Nenhuma notícia publicada ainda</div>';
+      return;
+    }
+    
+    let noticias = [];
+    for (let id in data) {
+      noticias.push({ id: id, dados: data[id] });
+    }
+    noticias.sort((a, b) => (b.dados.timestamp || 0) - (a.dados.timestamp || 0));
+    
+    for (let i = 0; i < noticias.length; i++) {
+      let n = noticias[i].dados;
+      let id = noticias[i].id;
+      
+      const deleteButton = isAdmin ? `
+        <button class="news-delete-btn" onclick="News.delete('${id}', '${n.titulo.replace(/'/g, "\\'")}')">
+          🗑️ Deletar
+        </button>
+      ` : '';
+      
+      container.innerHTML += `
+      <div class="news-card">
+        <div class="news-image">
+          <img src="${n.imagem}" onerror="this.src='https://via.placeholder.com/400x200?text=Imagem+não+disponível'">
+          ${deleteButton}
+        </div>
+        <div class="news-content">
+          <div class="news-header">
+            <h3 class="news-title">${n.titulo}</h3>
+            <span class="news-date">📅 ${n.data || "Data não informada"}</span>
+          </div>
+          <p class="news-description">${n.descricao}</p>
+        </div>
+      </div>`;
+    }
+  }
+};
+
 // ================= LOGGER =================
 const Logger = {
   add(action, details) {
@@ -719,6 +749,7 @@ const System = {
       playersRef.set(null);
       matchesRef.set(null);
       lineupRef.set(null);
+      newsRef.set(null);
       Logger.add("⚠️ Reset Total", "Dados apagados");
       Toast.show("Dados resetados!");
       setTimeout(() => location.reload(), 1500);
@@ -733,6 +764,7 @@ matchesRef.on("value", snap => {
   Stats.processMatches(snap.val());
 });
 lineupRef.on("value", snap => Lineup.render(snap.val()));
+newsRef.on("value", snap => News.render(snap.val()));
 
 // ================= FUNÇÕES GLOBAIS =================
 function closeEditModal() {
@@ -755,5 +787,5 @@ document.getElementById("searchStats")?.addEventListener("input", e => {
   });
 });
 
-
-
+console.log("✅ Script carregado com sucesso!");
+console.log("UI está definida:", typeof UI !== "undefined");
