@@ -12,21 +12,36 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ================= LOGIN ADMIN =================
-const ADMIN_USER = "bahiaADM";
-const ADMIN_PASS = "williangoat123";
-let isAdmin = false;
+// ================= ADMINS =================
+const ADMINS = [
+  {user:"willian1506", pass:"willian123"},
+  {user:"stormy", pass:"183524"},
+  {user:"Mkz", pass:"12456453"}
+];
+
+// ================= LOGIN =================
+let isAdmin = localStorage.getItem("admin") === "true";
 
 function loginAdmin(){
+
   let user = prompt("Usuário:");
   let pass = prompt("Senha:");
 
-  if(user === ADMIN_USER && pass === ADMIN_PASS){
+  let autorizado = ADMINS.find(a => a.user === user && a.pass === pass);
+
+  if(autorizado){
     isAdmin = true;
-    Toast.show("Login realizado!");
+    localStorage.setItem("admin", "true");
+    Toast.show("Login salvo!");
   } else {
     Toast.show("Acesso negado!");
   }
+}
+
+function logoutAdmin(){
+  isAdmin = false;
+  localStorage.removeItem("admin");
+  Toast.show("Saiu da conta!");
 }
 
 // ================= LOADER =================
