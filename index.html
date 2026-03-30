@@ -2,58 +2,68 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>RF24 ULTIMATE PRO</title>
+<title>RF24 ULTIMATE MAX+</title>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
-body {
+
+/* ================= GLOBAL ================= */
+body{
   margin:0;
+  font-family:Arial;
   background: radial-gradient(circle at top,#0a2030,#050f18);
   color:white;
-  font-family:Arial;
+  overflow-x:hidden;
 }
 
-/* MENU */
-.fifa-menu {
+/* ================= MENU ================= */
+.menu{
   display:flex;
   justify-content:center;
   gap:20px;
   padding:15px;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter:blur(10px);
 }
 
-.fifa-menu div {
+.menu div{
   padding:10px 20px;
   border-radius:20px;
   cursor:pointer;
-  background:#091d2a;
   transition:0.3s;
 }
 
-.fifa-menu div:hover {
-  box-shadow:0 0 20px red;
+.menu div:hover{
+  box-shadow:0 0 20px #c62828;
+  transform:translateY(-2px);
 }
 
-.active-tab {
-  background:#c62828 !important;
+.active-tab{
+  background:#c62828;
 }
 
-/* SECTIONS */
-.section {
+/* ================= SEÇÕES ================= */
+.section{
   display:none;
-  opacity:0;
-  transition:0.5s;
+  padding:20px;
+  animation:fade 0.5s;
 }
 
-.section.active {
+.section.active{
   display:block;
-  opacity:1;
 }
 
-/* CARD */
-.card {
-  width:180px;
+@keyframes fade{
+  from{opacity:0; transform:translateY(20px);}
+  to{opacity:1;}
+}
+
+/* ================= CARDS ================= */
+.card{
+  width:190px;
+  height:270px;
   border-radius:20px;
   padding:10px;
   margin:10px;
@@ -61,57 +71,87 @@ body {
   background:linear-gradient(160deg,#c62828,#0a2030);
   text-align:center;
   transition:0.3s;
+  position:relative;
 }
 
-.card:hover {
+.card:hover{
   transform:scale(1.08);
-  box-shadow:0 0 20px red;
+  box-shadow:0 0 25px red;
 }
 
-.ovr {
-  font-size:22px;
+.ovr{
+  position:absolute;
+  top:10px;
+  left:10px;
+  font-size:24px;
   font-weight:bold;
 }
 
-/* INPUT */
-input {
-  padding:10px;
-  border-radius:10px;
-  border:none;
-  margin:5px;
+/* ================= INPUT ================= */
+input{
   background:#091d2a;
+  border:none;
+  padding:10px;
+  margin:5px;
+  border-radius:12px;
   color:white;
+  transition:0.3s;
 }
 
-/* CAMPO */
-.field {
+input:focus{
+  box-shadow:0 0 10px red;
+  outline:none;
+}
+
+button{
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  background:#c62828;
+  color:white;
+  cursor:pointer;
+}
+
+/* ================= CAMPO ================= */
+.field{
   width:90%;
-  height:400px;
-  background:green;
+  height:420px;
+  background:linear-gradient(green,#0b6623);
   margin:auto;
   border-radius:20px;
   position:relative;
 }
 
-.player-pos {
+.player{
   position:absolute;
   background:#c62828;
   padding:5px 10px;
   border-radius:10px;
   font-size:12px;
+  transform:translate(-50%,-50%);
 }
+
+/* ================= MATCH ================= */
+.match{
+  background:#091d2a;
+  border-radius:15px;
+  padding:10px;
+  margin:10px;
+}
+
 </style>
 </head>
 
 <body>
 
 <!-- MENU -->
-<div class="fifa-menu">
-  <div onclick="showSection('players')">Jogadores</div>
-  <div onclick="showSection('matches')">Partidas</div>
-  <div onclick="showSection('tables')">Tabela</div>
-  <div onclick="showSection('scorers')">Artilharia</div>
-  <div onclick="showSection('lineup')">Escalação</div>
+<div class="menu">
+  <div onclick="UI.show('players',this)">Jogadores</div>
+  <div onclick="UI.show('matches',this)">Partidas</div>
+  <div onclick="UI.show('tables',this)">Tabela</div>
+  <div onclick="UI.show('scorers',this)">Artilharia</div>
+  <div onclick="UI.show('lineup',this)">Escalação</div>
+  <div onclick="UI.show('admin',this)">Admin</div>
 </div>
 
 <!-- SEÇÕES -->
@@ -121,19 +161,15 @@ input {
 <div id="scorers" class="section"></div>
 
 <div id="lineup" class="section">
-  <h2>⚽ Escalação</h2>
+  <h2>Escalação</h2>
   <div class="field" id="field"></div>
-
-  <h3>Adicionar jogador na posição</h3>
-  <input id="posNome" placeholder="Nome">
-  <input id="posX" placeholder="X (0-100)">
-  <input id="posY" placeholder="Y (0-100)">
-  <button onclick="addPosition()">Adicionar</button>
 </div>
 
-<hr>
+<div id="admin" class="section">
 
-<h3>Adicionar Jogador</h3>
+<h2>Painel Admin</h2>
+
+<h3>Jogador</h3>
 <input id="nome" placeholder="Nome">
 <input id="ovr" placeholder="OVR">
 <input id="pac" placeholder="PAC">
@@ -142,129 +178,172 @@ input {
 <input id="dri" placeholder="DRI">
 <input id="def" placeholder="DEF">
 <input id="phy" placeholder="PHY">
-<button onclick="addPlayer()">Salvar</button>
+<button onclick="Player.add()">Adicionar Jogador</button>
 
-<h3>Adicionar Partida</h3>
+<h3>Partida</h3>
 <input id="liga" placeholder="Liga">
 <input id="timeA" placeholder="Time A">
 <input id="timeB" placeholder="Time B">
 <input id="placar" placeholder="2x1">
 <input id="gols" placeholder="Nome:2">
-<button onclick="addMatch()">Salvar</button>
+<button onclick="Match.add()">Adicionar Partida</button>
+
+<h3>Escalação</h3>
+<input id="pNome" placeholder="Nome">
+<input id="pX" placeholder="X">
+<input id="pY" placeholder="Y">
+<button onclick="Lineup.add()">Adicionar</button>
+
+<button onclick="System.clear()">RESET TOTAL</button>
+
+</div>
 
 <script>
-// CONFIG
+
+/* ================= FIREBASE ================= */
 const firebaseConfig = {
   apiKey:"SUA_KEY",
   authDomain:"SEU_APP.firebaseapp.com",
   databaseURL:"https://SEU_APP-default-rtdb.firebaseio.com",
   projectId:"SEU_APP"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// MENU
-function showSection(id){
-  document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
+/* ================= UI ================= */
+const UI = {
+  show(id,el){
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.querySelectorAll(".menu div").forEach(t=>t.classList.remove("active-tab"));
+    document.getElementById(id).classList.add("active");
+    el.classList.add("active-tab");
+  }
+};
 
-// ADD PLAYER
-function addPlayer(){
-  db.ref("players/"+Date.now()).set({
-    nome:nome.value,
-    ovr:ovr.value,
-    pac:pac.value,
-    sho:sho.value,
-    pas:pas.value,
-    dri:dri.value,
-    def:def.value,
-    phy:phy.value
-  });
-}
+/* ================= PLAYER ================= */
+const Player = {
+  add(){
+    db.ref("players/"+Date.now()).set({
+      nome:nome.value,
+      ovr:ovr.value,
+      pac:pac.value,
+      sho:sho.value,
+      pas:pas.value,
+      dri:dri.value,
+      def:def.value,
+      phy:phy.value
+    });
+  },
+  render(data){
+    players.innerHTML="";
+    Object.values(data||{})
+    .sort((a,b)=>b.ovr-a.ovr)
+    .forEach(p=>{
+      players.innerHTML+=`
+        <div class="card">
+          <div class="ovr">${p.ovr}</div>
+          <img src="https://i.imgur.com/og7m8DI.png" width="90">
+          <h4>${p.nome}</h4>
+          <div>${p.pac} ${p.sho} ${p.pas}</div>
+        </div>
+      `;
+    });
+  }
+};
 
-// ADD MATCH
-function addMatch(){
-  db.ref("matches/"+Date.now()).set({
-    liga:liga.value,
-    timeA:timeA.value,
-    timeB:timeB.value,
-    placar:placar.value,
-    gols:gols.value
-  });
-}
+/* ================= MATCH ================= */
+const Match = {
+  add(){
+    db.ref("matches/"+Date.now()).set({
+      liga:liga.value,
+      timeA:timeA.value,
+      timeB:timeB.value,
+      placar:placar.value,
+      gols:gols.value
+    });
+  },
+  process(data){
+    let tabela={}, artilharia={};
 
-// ESCALAÇÃO
-function addPosition(){
-  db.ref("lineup/"+Date.now()).set({
-    nome:posNome.value,
-    x:posX.value,
-    y:posY.value
-  });
-}
+    Object.values(data||{}).forEach(m=>{
 
-// RENDER
-db.ref("players").on("value",snap=>{
-  players.innerHTML="";
-  Object.values(snap.val()||{}).forEach(p=>{
-    players.innerHTML+=`
-      <div class="card">
-        <div class="ovr">${p.ovr}</div>
-        <img src="https://i.imgur.com/og7m8DI.png" width="80">
-        <h4>${p.nome}</h4>
-        <div>${p.pac} ${p.sho} ${p.pas}</div>
-      </div>
-    `;
-  });
-});
+      matches.innerHTML+=`
+        <div class="match">
+          ${m.timeA} ${m.placar} ${m.timeB} <br>
+          🏆 ${m.liga}
+        </div>
+      `;
 
-// PARTIDAS + TABELA + ARTILHARIA
+      let [g1,g2]=m.placar.split("x").map(Number);
+
+      tabela[m.timeA]=(tabela[m.timeA]||0);
+      tabela[m.timeB]=(tabela[m.timeB]||0);
+
+      if(g1>g2) tabela[m.timeA]+=3;
+      else if(g2>g1) tabela[m.timeB]+=3;
+      else {tabela[m.timeA]+=1; tabela[m.timeB]+=1;}
+
+      if(m.gols){
+        let [n,g]=m.gols.split(":");
+        artilharia[n]=(artilharia[n]||0)+parseInt(g);
+      }
+    });
+
+    System.renderTable(tabela);
+    System.renderScorers(artilharia);
+  }
+};
+
+/* ================= LINEUP ================= */
+const Lineup = {
+  add(){
+    db.ref("lineup/"+Date.now()).set({
+      nome:pNome.value,
+      x:pX.value,
+      y:pY.value
+    });
+  },
+  render(data){
+    field.innerHTML="";
+    Object.values(data||{}).forEach(p=>{
+      field.innerHTML+=`
+        <div class="player" style="left:${p.x}%; top:${p.y}%">
+          ${p.nome}
+        </div>
+      `;
+    });
+  }
+};
+
+/* ================= SYSTEM ================= */
+const System = {
+  clear(){
+    db.ref().remove();
+  },
+  renderTable(tabela){
+    tables.innerHTML="";
+    Object.entries(tabela).sort((a,b)=>b[1]-a[1])
+    .forEach((t,i)=>{
+      tables.innerHTML+=`<div class="card">${i+1}º ${t[0]} - ${t[1]}</div>`;
+    });
+  },
+  renderScorers(art){
+    scorers.innerHTML="";
+    Object.entries(art).sort((a,b)=>b[1]-a[1])
+    .forEach((a,i)=>{
+      scorers.innerHTML+=`<div class="card">${i+1}º ${a[0]} ⚽ ${a[1]}</div>`;
+    });
+  }
+};
+
+/* ================= LISTENERS ================= */
+db.ref("players").on("value",snap=>Player.render(snap.val()));
 db.ref("matches").on("value",snap=>{
   matches.innerHTML="";
-  tables.innerHTML="";
-  scorers.innerHTML="";
-
-  let tabela={}, artilharia={};
-
-  Object.values(snap.val()||{}).forEach(m=>{
-    matches.innerHTML+=`<div class="card">${m.timeA} ${m.placar} ${m.timeB}</div>`;
-
-    let [g1,g2]=m.placar.split("x").map(Number);
-
-    if(!tabela[m.timeA]) tabela[m.timeA]=0;
-    if(!tabela[m.timeB]) tabela[m.timeB]=0;
-
-    if(g1>g2) tabela[m.timeA]+=3;
-    else if(g2>g1) tabela[m.timeB]+=3;
-    else {tabela[m.timeA]+=1; tabela[m.timeB]+=1;}
-
-    if(m.gols){
-      let [n,g]=m.gols.split(":");
-      artilharia[n]=(artilharia[n]||0)+parseInt(g);
-    }
-  });
-
-  Object.entries(tabela).sort((a,b)=>b[1]-a[1]).forEach((t,i)=>{
-    tables.innerHTML+=`<div class="card">${i+1}º ${t[0]} - ${t[1]}</div>`;
-  });
-
-  Object.entries(artilharia).sort((a,b)=>b[1]-a[1]).forEach((a,i)=>{
-    scorers.innerHTML+=`<div class="card">${i+1}º ${a[0]} ⚽ ${a[1]}</div>`;
-  });
+  Match.process(snap.val());
 });
+db.ref("lineup").on("value",snap=>Lineup.render(snap.val()));
 
-// ESCALAÇÃO RENDER
-db.ref("lineup").on("value",snap=>{
-  field.innerHTML="";
-  Object.values(snap.val()||{}).forEach(p=>{
-    field.innerHTML+=`
-      <div class="player-pos" style="left:${p.x}%; top:${p.y}%">
-        ${p.nome}
-      </div>
-    `;
-  });
-});
 </script>
 
 </body>
