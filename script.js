@@ -183,52 +183,105 @@ const Match = {
   }
 };
 
-// ================= LINEUP =================
+// ================= LINEUP (VERSÃO CORRIGIDA) =================
 const Lineup = {
 
   add() {
+    if (!pNome.value.trim()) {
+      Toast.show("Digite um nome!");
+      return;
+    }
+    
     lineupRef.push({
       nome: pNome.value,
       x: 50,
       y: 50
     });
-
+    
+    pNome.value = "";
     Toast.show("Jogador adicionado ao campo!");
   },
 
   render(data) {
     field.innerHTML = "";
+    
+    if (!data) return;
 
-    Object.entries(data || {}).forEach(([id, p]) => {
-
+    Object.entries(data).forEach(([id, p]) => {
       let el = document.createElement("div");
       el.className = "player";
       el.innerText = p.nome;
       el.style.left = p.x + "%";
       el.style.top = p.y + "%";
-
-      let dragging = false;
-
-      el.onmousedown = (e) => {
-        dragging = true;
+      el.setAttribute("data-id", id);
+      el.setAttribute("draggable", "false"); // Desativa drag nativo
+      
+      // Variável de controle
+      let isDragging = false;
+      let startMouseX, startMouseY;
+      let startLeft, startTop;
+      
+      // Mouse down - inicia o arraste
+      el.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        isDragging = true;
+        
+        startMouseX = e.clientX;
+        startMouseY = e.clientY;
+        
+        startLeft = parseFloat(el.style.left);
+        startTop = parseFloat(el.style.top);
+        
+        el.style.cursor = "grabbing";
+        el.style.opacity = "0.7";
+      });
+      
+      // Mouse move - arrasta (global)
+      const onMouseMove = (e) => {
+        if (!isDragging) return;
+        
+        const rect = field.getBoundingClientRect();
+        
+        const deltaX = e.clientX - startMouseX;
+        const deltaY = e.clientY - startMouseY;
+        
+        const deltaPercentX = (deltaX / rect.width) * 100;
+        const deltaPercentY = (deltaY / rect.height) * 100;
+        
+        let newX = startLeft + deltaPercentX;
+        let newY = startTop + deltaPercentY;
+        
+        // Limites do campo
+        newX = Math.min(Math.max(newX, 0), 100);
+        newY = Math.min(Math.max(newY, 0), 100);
+        
+        el.style.left = newX + "%";
+        el.style.top = newY + "%";
+        
+        // Atualiza Firebase em tempo real
+        lineupRef.child(id).update({ x: newX, y: newY });
       };
-
-      document.onmouseup = () => dragging = false;
-
-      document.onmousemove = (e) => {
-        if (!dragging) return;
-
-        let rect = field.getBoundingClientRect();
-
-        let x = ((e.clientX - rect.left) / rect.width) * 100;
-        let y = ((e.clientY - rect.top) / rect.height) * 100;
-
-        el.style.left = x + "%";
-        el.style.top = y + "%";
-
-        lineupRef.child(id).update({ x, y });
+      
+      // Mouse up - finaliza
+      const onMouseUp = () => {
+        if (isDragging) {
+          isDragging = false;
+          el.style.cursor = "grab";
+          el.style.opacity = "1";
+        }
       };
-
+      
+      // Adiciona os listeners
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+      
+      // Limpa listeners quando o elemento for removido (opcional)
+      el.addEventListener("remove", () => {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+      });
+      
+      el.style.cursor = "grab";
       field.appendChild(el);
     });
   }
