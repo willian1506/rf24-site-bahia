@@ -13,7 +13,7 @@ body {
   color: white;
 }
 
-/* ---------------- SPLASH ---------------- */
+/* SPLASH */
 #splash {
   position: fixed;
   width: 100%;
@@ -32,7 +32,6 @@ body {
 .splash-content img {
   width: 180px;
   margin-bottom: 20px;
-  border-radius: 20px; /* ARREDONDADO */
   animation: float 3s infinite ease-in-out;
 }
 
@@ -51,21 +50,11 @@ body {
   50% { transform: translateY(-10px); }
 }
 
-/* ---------------- HEADER ---------------- */
-header {
-  text-align: center;
-  padding: 20px;
-  background: #1976d2;
-}
-
-/* ---------------- BOTÕES ---------------- */
+/* BOTÕES */
 .top-buttons {
   position: fixed;
   top: 10px;
-  right: 10px;
-  z-index: 300; /* GARANTE QUE FICA POR CIMA */
-  display: flex;
-  gap: 5px;
+  right: 60px;
 }
 
 button {
@@ -78,10 +67,16 @@ button {
 .admin-btn { background: #c62828; color:white; }
 .logout-btn { background: #ffffff; color:#c62828; }
 
-/* ---------------- CONTAINER ---------------- */
+/* HEADER */
+header {
+  text-align: center;
+  padding: 20px;
+  background: #1976d2;
+}
+
+/* CARDS */
 .container { padding: 20px; }
 
-/* ---------------- CARDS ---------------- */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -90,30 +85,14 @@ button {
 
 .card {
   width: 180px;
+  height: 260px;
   border-radius: 15px;
   padding: 10px;
   text-align: center;
   background: linear-gradient(145deg, #1976d2, #0a2030);
 }
 
-.card img {
-  width: 100%;
-  border-radius: 10px;
-}
-
-/* ---------------- TECNICO ---------------- */
-.coach {
-  margin-top: 30px;
-  text-align: center;
-}
-
-.coach img {
-  width: 150px;
-  border-radius: 15px;
-  margin-top: 10px;
-}
-
-/* ---------------- LOGIN ---------------- */
+/* LOGIN */
 .login {
   position: fixed;
   top:0; left:0;
@@ -126,7 +105,7 @@ button {
   background:#0a2030; padding:20px; border-radius:15px; text-align:center;
 }
 
-/* ---------------- ADMIN PANEL ---------------- */
+/* ADMIN PANEL */
 .admin-panel {
   position: fixed;
   right: -400px;
@@ -145,6 +124,10 @@ button {
   right:0;
   box-shadow: -5px 0 20px rgba(0,0,0,0.8);
 }
+
+.admin-panel:not(.active){
+  box-shadow:none;
+}
 </style>
 </head>
 
@@ -153,7 +136,7 @@ button {
 <!-- SPLASH -->
 <div id="splash">
   <div class="splash-content">
-    <img src="https://images-ext-1.discordapp.net/external/p5eaHKQJ5fDQDwNOpt_FUbXYbgxc7iWP652F5kmDZKs/%3Fsize%3D2048/https/cdn.discordapp.com/icons/1444161827113140226/3d299d4be752faf8374189e5c4a05f4d.png?format=webp&quality=lossless">
+    <img src="https://images-ext-1.discordapp.net/external/p5eaHKQJ5fDQDwNOpt_FUbXYbgxc7iWP652F5kmDZKs/%3Fsize%3D2048/https/cdn.discordapp.com/icons/1444161827113140226/3d299d4be752faf8374189e5c4a05f4d.png">
     <h1>Esporte Clube Salvador 1941</h1>
     <button onclick="enterSite()">Entrar</button>
   </div>
@@ -165,23 +148,13 @@ button {
   <button class="logout-btn" onclick="logout()">Sair</button>
 </div>
 
-<!-- HEADER -->
 <header>
   <h1 id="teamName">Esporte Clube Salvador</h1>
 </header>
 
 <div class="container">
-
 <h2>👥 Jogadores</h2>
 <div class="cards" id="players"></div>
-
-<!-- TECNICO -->
-<div class="coach">
-  <h2>🎮 Técnico</h2>
-  <h3>MonkeyWsp0</h3>
-  <img src="https://media.discordapp.net/attachments/1442635394561867968/1487975263789650063/gfx1_mkz.png">
-</div>
-
 </div>
 
 <!-- LOGIN -->
@@ -198,18 +171,15 @@ button {
 <div class="admin-panel" id="adminPanel">
 <h3>Painel PRO</h3>
 <input id="nomeJogador" placeholder="Nome">
-<input id="imgJogador" placeholder="Imagem">
 <input id="ovr" placeholder="Overall">
 <button onclick="addPlayer()">Adicionar</button>
 </div>
 
 <script>
-// SPLASH
 function enterSite(){
   document.getElementById("splash").style.display="none";
 }
 
-// LOGIN
 const ADMIN_USER="admin";
 const ADMIN_PASS="123";
 
@@ -218,10 +188,7 @@ function openLogin(){
 }
 
 function login(){
-  let u=user.value;
-  let p=pass.value;
-
-  if(u===ADMIN_USER && p===ADMIN_PASS){
+  if(user.value===ADMIN_USER && pass.value===ADMIN_PASS){
     loginBox.style.display="none";
     adminPanel.classList.add("active");
   } else alert("Erro!");
@@ -231,7 +198,6 @@ function logout(){
   adminPanel.classList.remove("active");
 }
 
-// DADOS
 let data = {players:[]};
 
 function render(){
@@ -240,7 +206,7 @@ function render(){
     players.innerHTML+=`
       <div class="card">
         <h3>${p.nome}</h3>
-        <img src="${p.img}">
+        <img src="https://i.imgur.com/og7m8DI.png" width="100">
         <p>OVR: ${p.ovr}</p>
       </div>
     `;
@@ -250,7 +216,6 @@ function render(){
 function addPlayer(){
   data.players.push({
     nome:nomeJogador.value,
-    img:imgJogador.value,
     ovr:ovr.value
   });
   render();
