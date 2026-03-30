@@ -98,14 +98,56 @@ const playersRef = db.ref("players");
 const matchesRef = db.ref("matches");
 const lineupRef = db.ref("lineup");
 
+// ================= LISTA DE JOGADORES (para correspondência) =================
+let jogadoresLista = [];
+
+// Carrega jogadores para correspondência
+playersRef.on("value", (snap) => {
+  const dados = snap.val();
+  if (dados) {
+    jogadoresLista = Object.values(dados).map(j => ({
+      nome: j.nome,
+      nomeLower: j.nome.toLowerCase(),
+      img: j.img
+    }));
+  }
+});
+
+// ================= FUNÇÃO DE CORRESPONDÊNCIA DE NOMES =================
+function encontrarJogador(nomeDigitado) {
+  if (!nomeDigitado) return null;
+  
+  const nomeBusca = nomeDigitado.toLowerCase().trim();
+  
+  // Remove acentos para melhor correspondência
+  const semAcentos = nomeBusca.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  
+  // Busca exata primeiro
+  let encontrado = jogadoresLista.find(j => j.nomeLower === nomeBusca);
+  if (encontrado) return encontrado;
+  
+  // Busca por similaridade (começa com)
+  encontrado = jogadoresLista.find(j => j.nomeLower.startsWith(nomeBusca) || nomeBusca.startsWith(j.nomeLower));
+  if (encontrado) return encontrado;
+  
+  // Busca por inclusão de palavra
+  encontrado = jogadoresLista.find(j => j.nomeLower.includes(nomeBusca) || nomeBusca.includes(j.nomeLower));
+  if (encontrado) return encontrado;
+  
+  // Busca sem acentos
+  encontrado = jogadoresLista.find(j => {
+    const jSemAcentos = j.nomeLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return jSemAcentos === semAcentos || jSemAcentos.includes(semAcentos);
+  });
+  
+  return encontrado || null;
+}
+
 // ================= SISTEMA DE ESTATÍSTICAS =================
 const Stats = {
-  // Dados de estatísticas
   data: {},
   
-  // Processa todas as partidas e gera estatísticas
   processMatches(matches) {
-    // Reset estatísticas
     this.data = {};
     
     if (!matches) return;
@@ -115,10 +157,12 @@ const Stats = {
       if (match.gols) {
         const golsLines = match.gols.split("\n");
         golsLines.forEach(line => {
-          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+)/);
+          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+(?:[0-9]*))/);
           if (nomeMatch) {
-            const nome = nomeMatch[1];
-            this.addStat(nome, "gols", 1);
+            const nomeDigitado = nomeMatch[1];
+            const jogador = encontrarJogador(nomeDigitado);
+            const nomeCorrigido = jogador ? jogador.nome : nomeDigitado;
+            this.addStat(nomeCorrigido, "gols", 1, jogador?.img);
           }
         });
       }
@@ -127,10 +171,12 @@ const Stats = {
       if (match.assistencias) {
         const assistLines = match.assistencias.split("\n");
         assistLines.forEach(line => {
-          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+)/);
+          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+(?:[0-9]*))/);
           if (nomeMatch) {
-            const nome = nomeMatch[1];
-            this.addStat(nome, "assistencias", 1);
+            const nomeDigitado = nomeMatch[1];
+            const jogador = encontrarJogador(nomeDigitado);
+            const nomeCorrigido = jogador ? jogador.nome : nomeDigitado;
+            this.addStat(nomeCorrigido, "assistencias", 1, jogador?.img);
           }
         });
       }
@@ -139,29 +185,38 @@ const Stats = {
       if (match.defesas) {
         const defesasLines = match.defesas.split("\n");
         defesasLines.forEach(line => {
-          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+)/);
+          const nomeMatch = line.match(/([a-zA-ZÀ-ÿ]+(?:[0-9]*))/);
           const qtdMatch = line.match(/(\d+)\s*defesas/);
           if (nomeMatch) {
-            const nome = nomeMatch[1];
+            const nomeDigitado = nomeMatch[1];
+            const jogador = encontrarJogador(nomeDigitado);
+            const nomeCorrigido = jogador ? jogador.nome : nomeDigitado;
             const qtd = qtdMatch ? parseInt(qtdMatch[1]) : 1;
-            this.addStat(nome, "defesas", qtd);
+            this.addStat(nomeCorrigido, "defesas", qtd, jogador?.img);
           }
         });
       }
       
       // Processa MVP
       if (match.mvp) {
-        this.addStat(match.mvp, "mvps", 1);
+        const jogador = encontrarJogador(match.mvp);
+        const nomeCorrigido = jogador ? jogador.nome : match.mvp;
+        this.addStat(nomeCorrigido, "mvps", 1, jogador?.img);
       }
       
       // Processa MENÇÕES
-      if (match.menc1) this.addStat(match.menc1, "mensoes", 1);
-      if (match.menc2) this.addStat(match.menc2, "mensoes", 1);
-      if (match.menc3) this.addStat(match.menc3, "mensoes", 1);
+      const mencoes = [match.menc1, match.menc2, match.menc3];
+      mencoes.forEach(men => {
+        if (men) {
+          const jogador = encontrarJogador(men);
+          const nomeCorrigido = jogador ? jogador.nome : men;
+          this.addStat(nomeCorrigido, "mensoes", 1, jogador?.img);
+        }
+      });
     });
   },
   
-  addStat(nome, tipo, valor) {
+  addStat(nome, tipo, valor, imagem) {
     if (!this.data[nome]) {
       this.data[nome] = {
         gols: 0,
@@ -169,7 +224,8 @@ const Stats = {
         defesas: 0,
         mvps: 0,
         mensoes: 0,
-        totalParticipacoes: 0
+        totalParticipacoes: 0,
+        img: imagem || "https://via.placeholder.com/80?text=Jogador"
       };
     }
     this.data[nome][tipo] += valor;
@@ -177,13 +233,17 @@ const Stats = {
       this.data[nome].gols + 
       this.data[nome].assistencias + 
       this.data[nome].defesas;
+    
+    // Se encontrou imagem, atualiza
+    if (imagem && !this.data[nome].img) {
+      this.data[nome].img = imagem;
+    }
   },
   
   render() {
     const container = document.getElementById("statsList");
     if (!container) return;
     
-    // Busca partidas para processar
     matchesRef.once("value", (snap) => {
       this.processMatches(snap.val());
       
@@ -200,6 +260,9 @@ const Stats = {
         container.innerHTML += `
         <div class="stats-card">
           <div class="stats-rank">${index + 1}º</div>
+          <div class="stats-player-img">
+            <img src="${stats.img}" onerror="this.src='https://via.placeholder.com/60?text=Jogador'" class="stats-img">
+          </div>
           <div class="stats-player-info">
             <div class="stats-player-name">${nome}</div>
           </div>
@@ -231,7 +294,7 @@ const Stats = {
             </div>
           </div>
           <div class="stats-total">
-            <span>🎯 Participações: ${stats.totalParticipacoes}</span>
+            <span>🎯 Total: ${stats.totalParticipacoes}</span>
           </div>
         </div>`;
       });
@@ -429,7 +492,7 @@ const Match = {
     matchesRef.push(match).then(() => {
       Logger.add("⚽ Adicionou Partida", `${match.timeA} ${match.placar} ${match.timeB} | ${match.dataPartida}`);
       Toast.show("Partida salva!");
-      Stats.processMatches(match);
+      Stats.processMatches({ [Date.now()]: match });
     });
     
     timeA.value = "";
