@@ -156,7 +156,7 @@
     <button onclick="Match.add()">✅ Adicionar Partida</button>
   </div>
 
-  <!-- NOTÍCIAS (APENAS ADMIN) -->
+  <!-- NOTÍCIAS -->
   <div class="admin-box">
     <h3>📰 Adicionar Notícia</h3>
     <input id="newsTitle" placeholder="Título da notícia">
@@ -183,7 +183,7 @@
   <button onclick="logoutAdmin()" style="margin-top:15px;background:#333;">🚪 Sair do Admin</button>
 </section>
 
-<!-- ================= MODAL DE EDIÇÃO ================= -->
+<!-- ================= MODAL DE EDIÇÃO DE JOGADOR ================= -->
 <div id="editModal" class="modal" style="display: none;">
   <div class="modal-content">
     <div class="modal-header">
@@ -212,8 +212,53 @@
   </div>
 </div>
 
-<script src="script.js"></script>
-  
+<!-- ================= MODAL DE EDIÇÃO DE PARTIDA ================= -->
+<div id="editMatchModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>✏️ Editar Partida</h3>
+      <span class="modal-close" onclick="closeEditMatchModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editMatchId">
+      <input id="editMatchTimeA" placeholder="Time A">
+      <input id="editMatchTimeB" placeholder="Time B">
+      <input id="editMatchPlacar" placeholder="Placar (ex: 2x1)">
+      <textarea id="editMatchGols" placeholder="⚽ GOLS (ex: Willian 15)" rows="2"></textarea>
+      <textarea id="editMatchAssists" placeholder="👟 ASSISTÊNCIAS (ex: Willian 15)" rows="2"></textarea>
+      <textarea id="editMatchDefesas" placeholder="🧤 DEFESAS (ex: Goleiro 5)" rows="2"></textarea>
+      <textarea id="editMatchCartoes" placeholder="🟨🟥 CARTÕES (ex: Willian 30 amarelo)" rows="2"></textarea>
+      <input id="editMatchMvp" placeholder="🏆 MVP">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEditMatchModal()">Cancelar</button>
+      <button class="btn-save" onclick="Match.update()">💾 Salvar</button>
+      <button class="btn-delete" onclick="Match.deleteMatch()">🗑️ Excluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL DE EDIÇÃO DE NOTÍCIA ================= -->
+<div id="editNewsModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>✏️ Editar Notícia</h3>
+      <span class="modal-close" onclick="closeEditNewsModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editNewsId">
+      <input id="editNewsTitle" placeholder="Título">
+      <input id="editNewsImage" placeholder="URL da imagem">
+      <textarea id="editNewsDesc" placeholder="Descrição" rows="4"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEditNewsModal()">Cancelar</button>
+      <button class="btn-save" onclick="News.update()">💾 Salvar</button>
+      <button class="btn-delete" onclick="News.deleteNews()">🗑️ Excluir</button>
+    </div>
+  </div>
+</div>
+
 <!-- ================= SELETOR DE IDIOMA ================= -->
 <div class="language-selector">
   <button class="lang-btn" data-lang="pt" title="Português">🇧🇷</button>
@@ -225,6 +270,7 @@
   <button class="lang-btn" data-lang="ch" title="Schweizerdeutsch">🇨🇭</button>
   <button class="lang-btn" data-lang="ru" title="Русский">🇷🇺</button>
 </div>
-  
+
+<script src="script.js"></script>
 </body>
 </html>
