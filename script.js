@@ -297,20 +297,27 @@ const Player = {
     document.getElementById("phy").value = "";
   },
   
-  edit(id, jogador){
-    if(!isAdmin){ Toast.show("🔒 Apenas administradores!"); return; }
-    document.getElementById("editId").value = id;
-    document.getElementById("editNome").value = jogador.nome || "";
-    document.getElementById("editImg").value = jogador.img || "";
-    document.getElementById("editOvr").value = jogador.ovr || 0;
-    document.getElementById("editPac").value = jogador.pac || "0";
-    document.getElementById("editSho").value = jogador.sho || "0";
-    document.getElementById("editPas").value = jogador.pas || "0";
-    document.getElementById("editDri").value = jogador.dri || "0";
-    document.getElementById("editDef").value = jogador.def || "0";
-    document.getElementById("editPhy").value = jogador.phy || "0";
-    document.getElementById("editModal").classList.add("active");
-  },
+edit(id, jogador) {
+  // VERIFICAÇÃO DUPLA: só abre se for admin
+  if (!isAdmin) {
+    Toast.show("🔒 Apenas administradores podem editar jogadores!");
+    return;
+  }
+  
+  this.currentEditId = id;
+  document.getElementById("editId").value = id;
+  document.getElementById("editNome").value = jogador.nome || "";
+  document.getElementById("editImg").value = jogador.img || "";
+  document.getElementById("editOvr").value = jogador.ovr || 0;
+  document.getElementById("editPac").value = jogador.pac || "0";
+  document.getElementById("editSho").value = jogador.sho || "0";
+  document.getElementById("editPas").value = jogador.pas || "0";
+  document.getElementById("editDri").value = jogador.dri || "0";
+  document.getElementById("editDef").value = jogador.def || "0";
+  document.getElementById("editPhy").value = jogador.phy || "0";
+  
+  document.getElementById("editModal").classList.add("active");
+}
   
   update(){
     if(!isAdmin){ Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
@@ -350,45 +357,24 @@ const Player = {
     document.getElementById("editModal").classList.remove("active");
   },
   
-  render(data){
-    var container = document.getElementById("playersList");
-    if(!container) return;
-    container.innerHTML = "";
-    if(!data) return;
-    
-    var jogadores = [];
-    for(var id in data) {
-      jogadores.push({id: id, dados: data[id]});
-    }
-    jogadores.sort(function(a,b){ return b.dados.ovr - a.dados.ovr; });
-    
-    if(!isAdmin){
-      for(var i = 0; i < jogadores.length; i++) {
-        var p = jogadores[i].dados;
-        container.innerHTML += `
-        <div class="player-card-full">
-          <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
-          <h3>${p.nome}</h3>
-          <div class="player-ovr">OVR ${p.ovr}</div>
-          <div class="player-attrs-grid">
-            <div class="attr-item"><span>⚡</span> ${p.pac}</div>
-            <div class="attr-item"><span>🎯</span> ${p.sho}</div>
-            <div class="attr-item"><span>🎯</span> ${p.pas}</div>
-            <div class="attr-item"><span>💫</span> ${p.dri}</div>
-            <div class="attr-item"><span>🛡️</span> ${p.def}</div>
-            <div class="attr-item"><span>💪</span> ${p.phy}</div>
-          </div>
-          <div class="view-only-badge">👀 Visualização</div>
-        </div>`;
-      }
-      return;
-    }
-    
-    for(var i = 0; i < jogadores.length; i++) {
+  render(data) {
+  var container = document.getElementById("playersList");
+  if (!container) return;
+  container.innerHTML = "";
+  if (!data) return;
+  
+  var jogadores = [];
+  for (var id in data) {
+    jogadores.push({ id: id, dados: data[id] });
+  }
+  jogadores.sort(function(a, b) { return b.dados.ovr - a.dados.ovr; });
+  
+  // PARA USUÁRIOS NÃO-ADMIN: APENAS VISUALIZAÇÃO (SEM CLIQUE)
+  if (!isAdmin) {
+    for (var i = 0; i < jogadores.length; i++) {
       var p = jogadores[i].dados;
-      var id = jogadores[i].id;
       container.innerHTML += `
-      <div class="player-card-full admin-card" onclick="Player.edit('${id}', ${JSON.stringify(p).replace(/"/g, '&quot;')})">
+      <div class="player-card-full" style="cursor: default;">
         <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
         <h3>${p.nome}</h3>
         <div class="player-ovr">OVR ${p.ovr}</div>
@@ -400,12 +386,35 @@ const Player = {
           <div class="attr-item"><span>🛡️</span> ${p.def}</div>
           <div class="attr-item"><span>💪</span> ${p.phy}</div>
         </div>
-        <div class="edit-badge">✏️ Clique para editar</div>
+        <div class="view-only-badge">👀 Visualização</div>
       </div>`;
     }
+    return;
   }
-};
-
+  
+  // PARA ADMIN: COM EDIÇÃO (CLIQUE FUNCIONA)
+  for (var i = 0; i < jogadores.length; i++) {
+    var p = jogadores[i].dados;
+    var id = jogadores[i].id;
+    // Escapa o JSON corretamente
+    var jogadorJSON = JSON.stringify(p).replace(/"/g, '&quot;');
+    container.innerHTML += `
+    <div class="player-card-full admin-card" onclick="Player.edit('${id}', ${jogadorJSON})">
+      <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=Jogador'">
+      <h3>${p.nome}</h3>
+      <div class="player-ovr">OVR ${p.ovr}</div>
+      <div class="player-attrs-grid">
+        <div class="attr-item"><span>⚡</span> ${p.pac}</div>
+        <div class="attr-item"><span>🎯</span> ${p.sho}</div>
+        <div class="attr-item"><span>🎯</span> ${p.pas}</div>
+        <div class="attr-item"><span>💫</span> ${p.dri}</div>
+        <div class="attr-item"><span>🛡️</span> ${p.def}</div>
+        <div class="attr-item"><span>💪</span> ${p.phy}</div>
+      </div>
+      <div class="edit-badge">✏️ Clique para editar</div>
+    </div>`;
+  }
+}
 // ================= MATCHES =================
 const Match = {
   formatGols(input){
