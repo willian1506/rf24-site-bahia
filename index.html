@@ -120,135 +120,98 @@
   <div class="field" id="field"></div>
 </section>
 
-<!-- ================= ADMIN ================= -->
-<section id="admin" class="screen">
+<!-- PARTIDA COMPLETA -->
+<div class="admin-box">
+  <h3>Adicionar Partida</h3>
 
-  <h2>⚙️ Painel Admin</h2>
-
-  <!-- JOGADOR -->
-  <div class="admin-box">
-    <h3>Adicionar Jogador</h3>
-
-    <input id="nome" placeholder="Nome">
-    <input id="img" placeholder="Imagem URL">
-    <input id="ovr" placeholder="OVR">
-
-    <div class="grid-attrs">
-      <input id="pac" placeholder="Ritmo">
-      <input id="sho" placeholder="Chute">
-      <input id="pas" placeholder="Passe">
-      <input id="dri" placeholder="Drible">
-      <input id="def" placeholder="Defesa">
-      <input id="phy" placeholder="Físico">
-    </div>
-
-    <button onclick="Player.add()">Adicionar Jogador</button>
+  <!-- Logo da Liga -->
+  <div style="margin-bottom: 10px;">
+    <label style="font-size: 12px; opacity: 0.8;">🏆 Logo da Liga / Tipo</label>
+    <input id="ligaLogo" placeholder="URL da logo da liga">
+    <select id="tipoPartida" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;">
+      <option value="liga">🏆 Partida de Liga</option>
+      <option value="amistoso">🤝 Amistoso</option>
+      <option value="copa">🏅 Copa</option>
+    </select>
   </div>
 
-  <!-- PARTIDA COMPLETA -->
-  <div class="admin-box">
-    <h3>Adicionar Partida</h3>
-
-    <!-- Logo da Liga -->
-    <div style="margin-bottom: 10px;">
-      <label style="font-size: 12px; opacity: 0.8;">🏆 Logo da Liga / Tipo</label>
-      <input id="ligaLogo" placeholder="URL da logo da liga">
-      <select id="tipoPartida" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;">
-        <option value="liga">🏆 Partida de Liga</option>
-        <option value="amistoso">🤝 Amistoso</option>
-        <option value="copa">🏅 Copa</option>
-      </select>
+  <!-- Times -->
+  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <div style="flex: 1;">
+      <label style="font-size: 12px; opacity: 0.8;">Time A</label>
+      <input id="timeA" placeholder="Nome do time A">
+      <input id="timeALogo" placeholder="URL da logo do time A">
     </div>
-
-    <!-- Times -->
-    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-      <div style="flex: 1;">
-        <label style="font-size: 12px; opacity: 0.8;">Time A</label>
-        <input id="timeA" placeholder="Nome do time A">
-        <input id="timeALogo" placeholder="URL da logo do time A">
-      </div>
-      <div style="flex: 1;">
-        <label style="font-size: 12px; opacity: 0.8;">Time B</label>
-        <input id="timeB" placeholder="Nome do time B">
-        <input id="timeBLogo" placeholder="URL da logo do time B">
-      </div>
-    </div>
-    
-    <input id="placar" placeholder="Placar (ex: 2x1)">
-    
-    <!-- GOLS -->
-    <div class="input-group">
-      <label style="font-size: 12px; opacity: 0.8;">⚽ GOLS (Digite: jogador minuto)</label>
-      <textarea id="golsList" placeholder="Exemplos:&#10;Willian 15&#10;Stormy 32&#10;Mkz 67" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-      <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e minuto separados por espaço</small>
-    </div>
-    
-    <!-- ASSISTÊNCIAS -->
-    <div class="input-group">
-      <label style="font-size: 12px; opacity: 0.8;">👟 ASSISTÊNCIAS (Digite: jogador minuto)</label>
-      <textarea id="assistsList" placeholder="Exemplos:&#10;Willian 15&#10;Stormy 32" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-      <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e minuto separados por espaço</small>
-    </div>
-    
-    <!-- DEFESAS -->
-    <div class="input-group">
-      <label style="font-size: 12px; opacity: 0.8;">🧤 DEFESAS (Digite: goleiro quantidade)</label>
-      <textarea id="defesasList" placeholder="Exemplos:&#10;Goleiro 5&#10;Goleiro 3" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-      <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e número de defesas</small>
-    </div>
-    
-    <!-- CARTÕES -->
-    <div class="input-group">
-      <label style="font-size: 12px; opacity: 0.8;">🟨🟥 CARTÕES (Digite: jogador minuto tipo)</label>
-      <textarea id="cartoesList" placeholder="Exemplos:&#10;Willian 30 amarelo&#10;Stormy 75 vermelho" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-      <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Use 'amarelo' ou 'vermelho' para definir o cartão</small>
-    </div>
-    
-    <!-- Melhor da Partida -->
-    <div style="margin: 10px 0;">
-      <label style="font-size: 12px; opacity: 0.8;">🏆 Melhor da Partida (MVP)</label>
-      <input id="mvp" placeholder="Nome do jogador">
-    </div>
-    
-    <!-- Menções -->
-    <div style="margin: 10px 0;">
-      <label style="font-size: 12px; opacity: 0.8;">🥇 1ª Menção</label>
-      <input id="men1" placeholder="Nome do jogador">
-      <label style="font-size: 12px; opacity: 0.8;">🥈 2ª Menção</label>
-      <input id="men2" placeholder="Nome do jogador">
-      <label style="font-size: 12px; opacity: 0.8;">🥉 3ª Menção</label>
-      <input id="men3" placeholder="Nome do jogador">
-    </div>
-    
-    <!-- Observações -->
-    <textarea id="obsPartida" placeholder="📝 OBSERVAÇÕES DA PARTIDA" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
-    
-    <button onclick="Match.add()">✅ Adicionar Partida</button>
-  </div>
-
-  <!-- ESCALAÇÃO -->
-  <div class="admin-box">
-    <h3>Escalação</h3>
-    <input id="pNome" placeholder="Nome do jogador">
-    <button onclick="Lineup.add()">Adicionar ao campo</button>
-  </div>
-
-  <!-- SEÇÃO DE LOGS -->
-  <div class="admin-box logs-box">
-    <h3>📜 HISTÓRICO DE AÇÕES (LOGS)</h3>
-    <div class="logs-header">
-      <span id="logCount" class="log-count">Carregando...</span>
-      <small style="opacity: 0.7;">⚠️ Estes logs são permanentes e não podem ser apagados</small>
-    </div>
-    <div id="logsList" class="logs-container">
-      <div class="loading-logs">Carregando histórico...</div>
+    <div style="flex: 1;">
+      <label style="font-size: 12px; opacity: 0.8;">Time B</label>
+      <input id="timeB" placeholder="Nome do time B">
+      <input id="timeBLogo" placeholder="URL da logo do time B">
     </div>
   </div>
-
-  <!-- BOTÃO RESET (não apaga logs) -->
-  <button class="danger" onclick="System.reset()">⚠️ RESET TOTAL DO BANCO DE DADOS</button>
-
-</section>
+  
+  <input id="placar" placeholder="Placar (ex: 2x1)">
+  
+  <!-- DATA E HORÁRIO DA PARTIDA -->
+  <div style="display: flex; gap: 10px; margin: 10px 0;">
+    <div style="flex: 1;">
+      <label style="font-size: 12px; opacity: 0.8;">📅 Data da Partida</label>
+      <input type="date" id="partidaData" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;">
+    </div>
+    <div style="flex: 1;">
+      <label style="font-size: 12px; opacity: 0.8;">⏰ Horário</label>
+      <input type="time" id="partidaHora" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;">
+    </div>
+  </div>
+  
+  <!-- GOLS -->
+  <div class="input-group">
+    <label style="font-size: 12px; opacity: 0.8;">⚽ GOLS (Digite: jogador minuto)</label>
+    <textarea id="golsList" placeholder="Exemplos:&#10;Willian 15&#10;Stormy 32&#10;Mkz 67" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e minuto separados por espaço</small>
+  </div>
+  
+  <!-- ASSISTÊNCIAS -->
+  <div class="input-group">
+    <label style="font-size: 12px; opacity: 0.8;">👟 ASSISTÊNCIAS (Digite: jogador minuto)</label>
+    <textarea id="assistsList" placeholder="Exemplos:&#10;Willian 15&#10;Stormy 32" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e minuto separados por espaço</small>
+  </div>
+  
+  <!-- DEFESAS -->
+  <div class="input-group">
+    <label style="font-size: 12px; opacity: 0.8;">🧤 DEFESAS (Digite: goleiro quantidade)</label>
+    <textarea id="defesasList" placeholder="Exemplos:&#10;Goleiro 5&#10;Goleiro 3" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Digite apenas nome e número de defesas</small>
+  </div>
+  
+  <!-- CARTÕES -->
+  <div class="input-group">
+    <label style="font-size: 12px; opacity: 0.8;">🟨🟥 CARTÕES (Digite: jogador minuto tipo)</label>
+    <textarea id="cartoesList" placeholder="Exemplos:&#10;Willian 30 amarelo&#10;Stormy 75 vermelho" rows="2" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+    <small style="font-size: 11px; opacity: 0.6;">💡 Dica: Use 'amarelo' ou 'vermelho' para definir o cartão</small>
+  </div>
+  
+  <!-- Melhor da Partida -->
+  <div style="margin: 10px 0;">
+    <label style="font-size: 12px; opacity: 0.8;">🏆 Melhor da Partida (MVP)</label>
+    <input id="mvp" placeholder="Nome do jogador">
+  </div>
+  
+  <!-- Menções -->
+  <div style="margin: 10px 0;">
+    <label style="font-size: 12px; opacity: 0.8;">🥇 1ª Menção</label>
+    <input id="men1" placeholder="Nome do jogador">
+    <label style="font-size: 12px; opacity: 0.8;">🥈 2ª Menção</label>
+    <input id="men2" placeholder="Nome do jogador">
+    <label style="font-size: 12px; opacity: 0.8;">🥉 3ª Menção</label>
+    <input id="men3" placeholder="Nome do jogador">
+  </div>
+  
+  <!-- Observações -->
+  <textarea id="obsPartida" placeholder="📝 OBSERVAÇÕES DA PARTIDA" rows="3" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 10px; background: #091d2a; color: white;"></textarea>
+  
+  <button onclick="Match.add()">✅ Adicionar Partida</button>
+</div>
 
 <!-- ================= SCRIPT ================= -->
 <script src="script.js"></script>
