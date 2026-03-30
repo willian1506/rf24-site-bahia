@@ -156,6 +156,23 @@
     <button onclick="Match.add()">✅ Adicionar Partida</button>
   </div>
 
+  <!-- TABELA MANUAL -->
+  <div class="admin-box">
+    <h3>🏆 Gerenciar Tabela de Classificação</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+      <input id="tableTeam" placeholder="Nome do time">
+      <input id="tablePts" placeholder="Pontos" type="number">
+      <input id="tablePj" placeholder="Jogos" type="number">
+      <input id="tableV" placeholder="Vitórias" type="number">
+      <input id="tableE" placeholder="Empates" type="number">
+      <input id="tableD" placeholder="Derrotas" type="number">
+      <input id="tableGp" placeholder="Gols Pró" type="number">
+      <input id="tableGc" placeholder="Gols Contra" type="number">
+    </div>
+    <button onclick="Standings.addOrUpdate()">➕ Adicionar/Atualizar Time</button>
+    <small style="display: block; margin-top: 10px; opacity: 0.7;">💡 A tabela agora é manual! Você controla os pontos e estatísticas.</small>
+  </div>
+
   <!-- NOTÍCIAS -->
   <div class="admin-box">
     <h3>📰 Adicionar Notícia</h3>
@@ -183,7 +200,7 @@
   <button onclick="logoutAdmin()" style="margin-top:15px;background:#333;">🚪 Sair do Admin</button>
 </section>
 
-<!-- ================= MODAIS DE EDIÇÃO ================= -->
+<!-- ================= MODAL DE EDIÇÃO DE JOGADOR ================= -->
 <div id="editModal" class="modal" style="display: none;">
   <div class="modal-content">
     <div class="modal-header">
@@ -212,6 +229,7 @@
   </div>
 </div>
 
+<!-- ================= MODAL DE EDIÇÃO DE PARTIDA ================= -->
 <div id="editMatchModal" class="modal" style="display: none;">
   <div class="modal-content">
     <div class="modal-header">
@@ -237,6 +255,7 @@
   </div>
 </div>
 
+<!-- ================= MODAL DE EDIÇÃO DE NOTÍCIA ================= -->
 <div id="editNewsModal" class="modal" style="display: none;">
   <div class="modal-content">
     <div class="modal-header">
@@ -257,6 +276,61 @@
   </div>
 </div>
 
+<!-- ================= MODAL DE LINEUP DA PARTIDA ================= -->
+<div id="editMatchLineupModal" class="modal" style="display: none;">
+  <div class="modal-content" style="max-width: 800px;">
+    <div class="modal-header">
+      <h3>📋 Escalação da Partida</h3>
+      <span class="modal-close" onclick="closeMatchLineupModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="matchLineupId">
+      <div class="match-lineup-players">
+        <div class="lineup-section">
+          <h4>⚽ Titulares</h4>
+          <div id="matchLineupStarters" class="lineup-players-list"></div>
+          <button class="add-player-btn" onclick="addPlayerToMatchLineup('starter')">+ Adicionar Titular</button>
+        </div>
+        <div class="lineup-section">
+          <h4>🔄 Reservas</h4>
+          <div id="matchLineupSubs" class="lineup-players-list"></div>
+          <button class="add-player-btn" onclick="addPlayerToMatchLineup('sub')">+ Adicionar Reserva</button>
+        </div>
+        <div class="lineup-section">
+          <h4>📋 Técnico</h4>
+          <div id="matchLineupCoach" class="lineup-players-list"></div>
+          <button class="add-player-btn" onclick="addPlayerToMatchLineup('coach')">+ Adicionar Técnico</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeMatchLineupModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveMatchLineup()">💾 Salvar Escalação</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL PARA ADICIONAR JOGADOR NA LINEUP ================= -->
+<div id="addPlayerToLineupModal" class="modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>➕ Adicionar Jogador</h3>
+      <span class="modal-close" onclick="closeAddPlayerModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="addPlayerType">
+      <select id="playerSelect" style="width:100%; padding:10px; margin:10px 0; border-radius:10px; background:#091d2a; color:white;">
+        <option value="">Selecione um jogador</option>
+      </select>
+      <input id="playerCustomName" placeholder="Ou digite um nome diferente" style="width:100%; padding:10px; border-radius:10px; background:#091d2a; color:white;">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeAddPlayerModal()">Cancelar</button>
+      <button class="btn-save" onclick="confirmAddPlayerToMatchLineup()">✅ Adicionar</button>
+    </div>
+  </div>
+</div>
+
 <!-- ================= SELETOR DE IDIOMA ================= -->
 <div class="language-selector">
   <button class="lang-btn" data-lang="pt" title="Português">🇧🇷</button>
@@ -270,22 +344,5 @@
 </div>
 
 <script src="script.js"></script>
-
-  <div class="admin-box">
-  <h3>🏆 Gerenciar Tabela de Classificação</h3>
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-    <input id="tableTeam" placeholder="Nome do time">
-    <input id="tablePts" placeholder="Pontos" type="number">
-    <input id="tablePj" placeholder="Jogos" type="number">
-    <input id="tableV" placeholder="Vitórias" type="number">
-    <input id="tableE" placeholder="Empates" type="number">
-    <input id="tableD" placeholder="Derrotas" type="number">
-    <input id="tableGp" placeholder="Gols Pró" type="number">
-    <input id="tableGc" placeholder="Gols Contra" type="number">
-  </div>
-  <button onclick="Standings.addOrUpdate()">➕ Adicionar/Atualizar Time</button>
-  <small>💡 A tabela agora é manual! Você controla os pontos.</small>
-</div>
-  
 </body>
 </html>
