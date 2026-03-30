@@ -274,4 +274,34 @@
 <script src="script.js"></script>
 
 </body>
+
+  <!-- ================= MODAL DE EDIÇÃO DE JOGADOR ================= -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>✏️ Editar Jogador</h3>
+      <span class="modal-close" onclick="closeEditModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <input id="editNome" placeholder="Nome">
+      <input id="editImg" placeholder="URL da imagem">
+      <input id="editOvr" placeholder="OVR" type="number">
+      <div class="grid-attrs">
+        <input id="editPac" placeholder="Ritmo">
+        <input id="editSho" placeholder="Chute">
+        <input id="editPas" placeholder="Passe">
+        <input id="editDri" placeholder="Drible">
+        <input id="editDef" placeholder="Defesa">
+        <input id="editPhy" placeholder="Físico">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEditModal()">Cancelar</button>
+      <button class="btn-save" onclick="Player.update()">💾 Salvar Alterações</button>
+      <button class="btn-delete" onclick="Player.delete()">🗑️ Excluir Jogador</button>
+    </div>
+  </div>
+</div>
+  
 </html>
