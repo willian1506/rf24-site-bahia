@@ -32,11 +32,8 @@ body {
 .splash-content img {
   width: 180px;
   margin-bottom: 20px;
+  border-radius: 20px; /* ARREDONDADO */
   animation: float 3s infinite ease-in-out;
-}
-
-.splash-content h1 {
-  margin-bottom: 20px;
 }
 
 .splash-content button {
@@ -66,6 +63,9 @@ header {
   position: fixed;
   top: 10px;
   right: 10px;
+  z-index: 300; /* GARANTE QUE FICA POR CIMA */
+  display: flex;
+  gap: 5px;
 }
 
 button {
@@ -90,11 +90,27 @@ button {
 
 .card {
   width: 180px;
-  height: 260px;
   border-radius: 15px;
   padding: 10px;
   text-align: center;
   background: linear-gradient(145deg, #1976d2, #0a2030);
+}
+
+.card img {
+  width: 100%;
+  border-radius: 10px;
+}
+
+/* ---------------- TECNICO ---------------- */
+.coach {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.coach img {
+  width: 150px;
+  border-radius: 15px;
+  margin-top: 10px;
 }
 
 /* ---------------- LOGIN ---------------- */
@@ -113,7 +129,7 @@ button {
 /* ---------------- ADMIN PANEL ---------------- */
 .admin-panel {
   position: fixed;
-  right: -400px; /* CORRIGIDO */
+  right: -400px;
   top:0;
   width:380px;
   height:100%;
@@ -128,10 +144,6 @@ button {
 .admin-panel.active {
   right:0;
   box-shadow: -5px 0 20px rgba(0,0,0,0.8);
-}
-
-.admin-panel:not(.active){
-  box-shadow:none;
 }
 </style>
 </head>
@@ -159,8 +171,17 @@ button {
 </header>
 
 <div class="container">
+
 <h2>👥 Jogadores</h2>
 <div class="cards" id="players"></div>
+
+<!-- TECNICO -->
+<div class="coach">
+  <h2>🎮 Técnico</h2>
+  <h3>MonkeyWsp0</h3>
+  <img src="https://media.discordapp.net/attachments/1442635394561867968/1487975263789650063/gfx1_mkz.png">
+</div>
+
 </div>
 
 <!-- LOGIN -->
@@ -219,7 +240,7 @@ function render(){
     players.innerHTML+=`
       <div class="card">
         <h3>${p.nome}</h3>
-        <img src="${p.img}" width="100">
+        <img src="${p.img}">
         <p>OVR: ${p.ovr}</p>
       </div>
     `;
