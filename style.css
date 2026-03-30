@@ -1031,7 +1031,6 @@ button:hover {
 }
 
 /* ================= NOTÍCIAS ================= */
-/* ================= NOTÍCIAS ================= */
 .news-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1059,21 +1058,14 @@ button:hover {
 .news-image {
   position: relative;
   width: 100%;
-  height: 200px;
-  overflow: hidden;
   background: #0a2030;
   flex-shrink: 0;
 }
 
 .news-image img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: 0.3s;
-}
-
-.news-card:hover .news-image img {
-  transform: scale(1.05);
+  height: auto;
+  display: block;
 }
 
 .news-delete-btn {
@@ -1159,10 +1151,6 @@ button:hover {
   .news-grid {
     grid-template-columns: 1fr;
     gap: 20px;
-  }
-  
-  .news-image {
-    height: 180px;
   }
   
   .news-header {
