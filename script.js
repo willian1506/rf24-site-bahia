@@ -15,7 +15,7 @@ const storage = firebase.storage();
 
 // ================= ADMINS =================
 const ADMINS = [
-  {user:"willian1506", pass:"willian123", nome:"Willian"},
+  {user:"willian1506", pass:"willian321aha", nome:"Willian"},
   {user:"stormy", pass:"183524", nome:"Stormy"},
   {user:"Mkz", pass:"12456453", nome:"Mkz"}
 ];
