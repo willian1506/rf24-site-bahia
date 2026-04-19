@@ -19,7 +19,7 @@ const ADMINS = [
   {user:"stormy", pass:"183524", nome:"Stormy"},
   {user:"mkz", pass:"5134674", nome:"Mkz"},
   {user:"belli", pass:"7548790", nome:"Bellingham"},
-  {user:"teth", pass:"85231", nome:"Teth"}
+  {user:"gusline", pass:"512421", nome:"Gus"}
 ];
 
 let isAdmin = localStorage.getItem("admin") === "true";
