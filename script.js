@@ -11,6 +11,7 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+const storage = firebase.storage();
 
 // ================= ADMINS =================
 const ADMINS = [
@@ -103,18 +104,90 @@ const newsRef = db.ref("news");
 const standingsRef = db.ref("standings");
 
 let jogadoresLista = [];
+let jogadoresMap = {};
 
+// ================= FUNÇÕES DE UPLOAD =================
+let selectedFile = null;
+let editSelectedFile = null;
+
+document.getElementById("playerImage")?.addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      document.getElementById("previewImg").src = event.target.result;
+      document.getElementById("imagePreview").style.display = "inline-block";
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+document.getElementById("editPlayerImage")?.addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    editSelectedFile = file;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      document.getElementById("editPreviewImg").src = event.target.result;
+      document.getElementById("editPreview").style.display = "inline-block";
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+function clearImagePreview() {
+  selectedFile = null;
+  document.getElementById("playerImage").value = "";
+  document.getElementById("imagePreview").style.display = "none";
+  document.getElementById("previewImg").src = "";
+  document.getElementById("imgUrl").value = "";
+}
+
+function clearEditPreview() {
+  editSelectedFile = null;
+  document.getElementById("editPlayerImage").value = "";
+  document.getElementById("editPreview").style.display = "none";
+  document.getElementById("editPreviewImg").src = "";
+}
+
+async function uploadPlayerImage(file, playerName) {
+  if (!file) return null;
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${playerName.replace(/\s/g, '_')}.${fileExt}`;
+  const storageRef = storage.ref(`players/${fileName}`);
+  Toast.show("📤 Enviando imagem...");
+  try {
+    const snapshot = await storageRef.put(file);
+    const downloadURL = await snapshot.ref.getDownloadURL();
+    Toast.show("✅ Imagem enviada!");
+    return downloadURL;
+  } catch (error) {
+    console.error("Erro no upload:", error);
+    Toast.show("❌ Erro ao enviar imagem!");
+    return null;
+  }
+}
+
+// ================= JOGADORES =================
 playersRef.on("value", (snap) => {
   let dados = snap.val();
   if (dados) {
     jogadoresLista = [];
+    jogadoresMap = {};
     for (let id in dados) {
       jogadoresLista.push({
         id: id,
         nome: dados[id].nome,
         nomeLower: dados[id].nome.toLowerCase(),
-        img: dados[id].img || "https://via.placeholder.com/40?text=Jogador"
+        img: dados[id].img || "https://via.placeholder.com/40?text=Jogador",
+        ovr: dados[id].ovr || 0
       });
+      jogadoresMap[dados[id].nome.toLowerCase()] = {
+        id: id,
+        nome: dados[id].nome,
+        img: dados[id].img
+      };
     }
   }
 });
@@ -236,13 +309,20 @@ const Stats = {
 
 // ================= PLAYERS =================
 const Player = {
-  add() {
+  async add() {
     if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); return; }
     let nomeInp = document.getElementById("nome");
     if (!nomeInp.value.trim()) { Toast.show("Digite o nome!"); return; }
+    
+    let imgUrl = "https://via.placeholder.com/150?text=Jogador";
+    if (selectedFile) {
+      imgUrl = await uploadPlayerImage(selectedFile, nomeInp.value);
+      if (!imgUrl) imgUrl = "https://via.placeholder.com/150?text=Jogador";
+    }
+    
     playersRef.push({
       nome: nomeInp.value,
-      img: document.getElementById("img").value || "https://via.placeholder.com/150?text=Jogador",
+      img: imgUrl,
       ovr: parseInt(document.getElementById("ovr").value) || 0,
       pac: document.getElementById("pac").value || "0",
       sho: document.getElementById("sho").value || "0",
@@ -254,8 +334,8 @@ const Player = {
       Logger.add("➕ Adicionou Jogador", "Nome: " + nomeInp.value);
       Toast.show("Jogador salvo!");
     });
+    
     document.getElementById("nome").value = "";
-    document.getElementById("img").value = "";
     document.getElementById("ovr").value = "";
     document.getElementById("pac").value = "";
     document.getElementById("sho").value = "";
@@ -263,6 +343,7 @@ const Player = {
     document.getElementById("dri").value = "";
     document.getElementById("def").value = "";
     document.getElementById("phy").value = "";
+    clearImagePreview();
   },
   
   edit(id, jogador) {
@@ -277,16 +358,30 @@ const Player = {
     document.getElementById("editDri").value = jogador.dri || "0";
     document.getElementById("editDef").value = jogador.def || "0";
     document.getElementById("editPhy").value = jogador.phy || "0";
+    
+    if (jogador.img && jogador.img !== "https://via.placeholder.com/150?text=Jogador") {
+      document.getElementById("editPreviewImg").src = jogador.img;
+      document.getElementById("editPreview").style.display = "inline-block";
+    }
+    
     document.getElementById("editModal").style.display = "flex";
   },
   
-  update() {
+  async update() {
     if (!isAdmin) { Toast.show("🔒 Apenas administradores!"); this.closeModal(); return; }
     let id = document.getElementById("editId").value;
     if (!id) return;
+    
+    let imgUrl = document.getElementById("editImg").value;
+    if (editSelectedFile) {
+      const nome = document.getElementById("editNome").value;
+      const uploadedUrl = await uploadPlayerImage(editSelectedFile, nome);
+      if (uploadedUrl) imgUrl = uploadedUrl;
+    }
+    
     playersRef.child(id).update({
       nome: document.getElementById("editNome").value,
-      img: document.getElementById("editImg").value || "https://via.placeholder.com/150?text=Jogador",
+      img: imgUrl || "https://via.placeholder.com/150?text=Jogador",
       ovr: parseInt(document.getElementById("editOvr").value) || 0,
       pac: document.getElementById("editPac").value || "0",
       sho: document.getElementById("editSho").value || "0",
@@ -316,6 +411,7 @@ const Player = {
   
   closeModal() {
     document.getElementById("editModal").style.display = "none";
+    clearEditPreview();
   },
   
   render(data) {
@@ -545,15 +641,15 @@ const Match = {
   
   render(data) {
     let matchesContainer = document.getElementById("matchesList");
-    let tableContainer = document.getElementById("tableList");
-    if (!matchesContainer || !tableContainer) return;
+    if (!matchesContainer) return;
     matchesContainer.innerHTML = "";
-    tableContainer.innerHTML = "";
-    let tabela = {};
     
     if (!data) return;
-    for (let key in data) {
-      let m = data[key];
+    let partidasArray = Object.entries(data).sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+    
+    for (let i = 0; i < partidasArray.length; i++) {
+      let key = partidasArray[i][0];
+      let m = partidasArray[i][1];
       const editButton = isAdmin ? `<button class="match-edit-btn" onclick="Match.edit('${key}', ${JSON.stringify(m).replace(/"/g, '&quot;')})">✏️ Editar</button>` : '';
       const lineupButton = isAdmin ? `<button class="match-lineup-btn" onclick="openMatchLineupModal('${key}')">📋 Escalação</button>` : '';
       
@@ -603,41 +699,6 @@ const Match = {
           </div>
         </div>` : ''}
       </div>`;
-      
-      let placarParts = (m.placar || "0x0").split("x");
-      let g1 = parseInt(placarParts[0]) || 0;
-      let g2 = parseInt(placarParts[1]) || 0;
-      
-      if (!tabela[m.timeA]) tabela[m.timeA] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
-      if (!tabela[m.timeB]) tabela[m.timeB] = { p: 0, v: 0, e: 0, d: 0, gp: 0, gc: 0 };
-      tabela[m.timeA].gp += g1;
-      tabela[m.timeA].gc += g2;
-      tabela[m.timeB].gp += g2;
-      tabela[m.timeB].gc += g1;
-      if (g1 > g2) {
-        tabela[m.timeA].p += 3;
-        tabela[m.timeA].v++;
-        tabela[m.timeB].d++;
-      } else if (g2 > g1) {
-        tabela[m.timeB].p += 3;
-        tabela[m.timeB].v++;
-        tabela[m.timeA].d++;
-      } else {
-        tabela[m.timeA].p++;
-        tabela[m.timeB].p++;
-        tabela[m.timeA].e++;
-        tabela[m.timeB].e++;
-      }
-    }
-    
-    let timesOrdenados = [];
-    for (let time in tabela) {
-      timesOrdenados.push({ nome: time, pontos: tabela[time].p, stats: tabela[time] });
-    }
-    timesOrdenados.sort((a, b) => b.pontos - a.pontos);
-    for (let i = 0; i < timesOrdenados.length; i++) {
-      let s = timesOrdenados[i].stats;
-      tableContainer.innerHTML += `<div class="table-card"><div class="table-position">${i + 1}º</div><div class="table-team">${timesOrdenados[i].nome}</div><div class="table-stats">${s.v}V/${s.e}E/${s.d}D</div><div class="table-goals">${s.gp}:${s.gc}</div><div class="table-points">${s.p} pts</div></div>`;
     }
   }
 };
@@ -1005,6 +1066,7 @@ const System = {
 // ================= VARIÁVEIS GLOBAIS PARA LINEUP DA PARTIDA =================
 let currentMatchLineupId = null;
 let currentLineupType = null;
+let selectedPlayerId = null;
 
 // ================= FUNÇÕES PARA LINEUP DA PARTIDA =================
 function openMatchLineupModal(matchId) {
@@ -1023,22 +1085,36 @@ function closeMatchLineupModal() {
 function closeAddPlayerModal() {
   document.getElementById("addPlayerToLineupModal").style.display = "none";
   currentLineupType = null;
+  selectedPlayerId = null;
 }
 
-function addPlayerToMatchLineup(type) {
+function openAddPlayerModal(type) {
   currentLineupType = type;
-  const select = document.getElementById("playerSelect");
-  select.innerHTML = '<option value="">Selecione um jogador</option>';
+  const container = document.getElementById("playersGridSelect");
+  container.innerHTML = '<div class="loading">Carregando jogadores...</div>';
   
   playersRef.once("value", snap => {
     const dados = snap.val();
+    container.innerHTML = "";
     if (dados) {
       for (let id in dados) {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = dados[id].nome;
-        select.appendChild(option);
+        const p = dados[id];
+        const card = document.createElement("div");
+        card.className = "player-select-card";
+        card.onclick = () => {
+          document.querySelectorAll(".player-select-card").forEach(c => c.classList.remove("selected"));
+          card.classList.add("selected");
+          selectedPlayerId = id;
+        };
+        card.innerHTML = `
+          <img src="${p.img || 'https://via.placeholder.com/50?text=Jogador'}" class="player-select-img" onerror="this.src='https://via.placeholder.com/50?text=Jogador'">
+          <div class="player-select-name">${p.nome}</div>
+          <div class="player-select-ovr">OVR ${p.ovr || 0}</div>
+        `;
+        container.appendChild(card);
       }
+    } else {
+      container.innerHTML = '<div class="no-players">Nenhum jogador cadastrado</div>';
     }
   });
   
@@ -1046,29 +1122,26 @@ function addPlayerToMatchLineup(type) {
 }
 
 function confirmAddPlayerToMatchLineup() {
-  const select = document.getElementById("playerSelect");
   const customName = document.getElementById("playerCustomName").value.trim();
-  
   let playerName = "";
   let playerId = null;
   let playerImg = null;
   
   if (customName) {
     playerName = customName;
-    addPlayerToLineupList(currentLineupType, playerId, playerName, playerImg);
+    addPlayerToLineupList(currentLineupType, null, playerName, null);
     closeAddPlayerModal();
     return;
-  } else if (select.value) {
-    playerId = select.value;
-    playersRef.child(playerId).once("value", snap => {
+  } else if (selectedPlayerId) {
+    playersRef.child(selectedPlayerId).once("value", snap => {
       const p = snap.val();
       if (p) {
         playerName = p.nome;
         playerImg = p.img;
-        addPlayerToLineupList(currentLineupType, playerId, playerName, playerImg);
+        addPlayerToLineupList(currentLineupType, selectedPlayerId, playerName, playerImg);
       }
+      closeAddPlayerModal();
     });
-    closeAddPlayerModal();
     return;
   } else {
     Toast.show("Selecione um jogador ou digite um nome!");
@@ -1077,23 +1150,23 @@ function confirmAddPlayerToMatchLineup() {
 }
 
 function addPlayerToLineupList(type, playerId, playerName, playerImg) {
-  const container = document.getElementById(`matchLineup${type === 'starter' ? 'Starters' : type === 'sub' ? 'Subs' : 'Coach'}`);
+  const container = document.getElementById(`matchLineupStarters`);
   
-  const playerDiv = document.createElement("div");
-  playerDiv.className = "lineup-player-item";
-  playerDiv.setAttribute("data-player-id", playerId || "custom");
-  playerDiv.setAttribute("data-player-name", playerName);
-  playerDiv.setAttribute("data-player-img", playerImg || "");
+  const playerCard = document.createElement("div");
+  playerCard.className = "fifa-player-card";
+  playerCard.setAttribute("data-player-id", playerId || "custom");
+  playerCard.setAttribute("data-player-name", playerName);
+  playerCard.setAttribute("data-player-img", playerImg || "");
+  playerCard.setAttribute("data-type", type);
   
-  playerDiv.innerHTML = `
-    <div class="lineup-player-img">
-      <img src="${playerImg || 'https://via.placeholder.com/40?text=Jogador'}" onerror="this.src='https://via.placeholder.com/40?text=Jogador'">
-    </div>
-    <div class="lineup-player-name">${playerName}</div>
-    <button class="lineup-remove-btn" onclick="this.parentElement.remove()">✖</button>
+  playerCard.innerHTML = `
+    <img src="${playerImg || 'https://via.placeholder.com/60?text=Jogador'}" class="fifa-player-img" onerror="this.src='https://via.placeholder.com/60?text=Jogador'">
+    <div class="fifa-player-name">${playerName}</div>
+    <div class="fifa-player-position">${type === 'starter' ? 'Titular' : type === 'sub' ? 'Reserva' : 'Técnico'}</div>
+    <button class="remove-player-btn" onclick="this.parentElement.remove()">✖</button>
   `;
   
-  container.appendChild(playerDiv);
+  container.appendChild(playerCard);
 }
 
 function saveMatchLineup() {
@@ -1106,27 +1179,11 @@ function saveMatchLineup() {
     coach: []
   };
   
-  document.querySelectorAll("#matchLineupStarters .lineup-player-item").forEach(item => {
+  document.querySelectorAll("#matchLineupStarters .fifa-player-card").forEach(card => {
     lineup.starters.push({
-      id: item.getAttribute("data-player-id"),
-      nome: item.getAttribute("data-player-name"),
-      img: item.getAttribute("data-player-img")
-    });
-  });
-  
-  document.querySelectorAll("#matchLineupSubs .lineup-player-item").forEach(item => {
-    lineup.subs.push({
-      id: item.getAttribute("data-player-id"),
-      nome: item.getAttribute("data-player-name"),
-      img: item.getAttribute("data-player-img")
-    });
-  });
-  
-  document.querySelectorAll("#matchLineupCoach .lineup-player-item").forEach(item => {
-    lineup.coach.push({
-      id: item.getAttribute("data-player-id"),
-      nome: item.getAttribute("data-player-name"),
-      img: item.getAttribute("data-player-img")
+      id: card.getAttribute("data-player-id"),
+      nome: card.getAttribute("data-player-name"),
+      img: card.getAttribute("data-player-img")
     });
   });
   
@@ -1138,67 +1195,26 @@ function saveMatchLineup() {
 }
 
 function loadMatchLineup(matchId) {
-  document.getElementById("matchLineupStarters").innerHTML = "";
-  document.getElementById("matchLineupSubs").innerHTML = "";
-  document.getElementById("matchLineupCoach").innerHTML = "";
+  const container = document.getElementById("matchLineupStarters");
+  container.innerHTML = "";
   
   matchesRef.child(matchId).child("lineup").once("value", snap => {
     const lineup = snap.val();
-    if (lineup) {
-      if (lineup.starters) {
-        lineup.starters.forEach(p => {
-          const container = document.getElementById("matchLineupStarters");
-          const playerDiv = document.createElement("div");
-          playerDiv.className = "lineup-player-item";
-          playerDiv.setAttribute("data-player-id", p.id || "custom");
-          playerDiv.setAttribute("data-player-name", p.nome);
-          playerDiv.setAttribute("data-player-img", p.img || "");
-          playerDiv.innerHTML = `
-            <div class="lineup-player-img">
-              <img src="${p.img || 'https://via.placeholder.com/40?text=Jogador'}" onerror="this.src='https://via.placeholder.com/40?text=Jogador'">
-            </div>
-            <div class="lineup-player-name">${p.nome}</div>
-            <button class="lineup-remove-btn" onclick="this.parentElement.remove()">✖</button>
-          `;
-          container.appendChild(playerDiv);
-        });
-      }
-      if (lineup.subs) {
-        lineup.subs.forEach(p => {
-          const container = document.getElementById("matchLineupSubs");
-          const playerDiv = document.createElement("div");
-          playerDiv.className = "lineup-player-item";
-          playerDiv.setAttribute("data-player-id", p.id || "custom");
-          playerDiv.setAttribute("data-player-name", p.nome);
-          playerDiv.setAttribute("data-player-img", p.img || "");
-          playerDiv.innerHTML = `
-            <div class="lineup-player-img">
-              <img src="${p.img || 'https://via.placeholder.com/40?text=Jogador'}" onerror="this.src='https://via.placeholder.com/40?text=Jogador'">
-            </div>
-            <div class="lineup-player-name">${p.nome}</div>
-            <button class="lineup-remove-btn" onclick="this.parentElement.remove()">✖</button>
-          `;
-          container.appendChild(playerDiv);
-        });
-      }
-      if (lineup.coach) {
-        lineup.coach.forEach(p => {
-          const container = document.getElementById("matchLineupCoach");
-          const playerDiv = document.createElement("div");
-          playerDiv.className = "lineup-player-item";
-          playerDiv.setAttribute("data-player-id", p.id || "custom");
-          playerDiv.setAttribute("data-player-name", p.nome);
-          playerDiv.setAttribute("data-player-img", p.img || "");
-          playerDiv.innerHTML = `
-            <div class="lineup-player-img">
-              <img src="${p.img || 'https://via.placeholder.com/40?text=Jogador'}" onerror="this.src='https://via.placeholder.com/40?text=Jogador'">
-            </div>
-            <div class="lineup-player-name">${p.nome}</div>
-            <button class="lineup-remove-btn" onclick="this.parentElement.remove()">✖</button>
-          `;
-          container.appendChild(playerDiv);
-        });
-      }
+    if (lineup && lineup.starters) {
+      lineup.starters.forEach(p => {
+        const playerCard = document.createElement("div");
+        playerCard.className = "fifa-player-card";
+        playerCard.setAttribute("data-player-id", p.id || "custom");
+        playerCard.setAttribute("data-player-name", p.nome);
+        playerCard.setAttribute("data-player-img", p.img || "");
+        playerCard.innerHTML = `
+          <img src="${p.img || 'https://via.placeholder.com/60?text=Jogador'}" class="fifa-player-img" onerror="this.src='https://via.placeholder.com/60?text=Jogador'">
+          <div class="fifa-player-name">${p.nome}</div>
+          <div class="fifa-player-position">Titular</div>
+          <button class="remove-player-btn" onclick="this.parentElement.remove()">✖</button>
+        `;
+        container.appendChild(playerCard);
+      });
     }
   });
 }
