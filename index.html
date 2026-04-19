@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Esporte_Clube_Bahia_logo.svg/32px-Esporte_Clube_Bahia_logo.svg.png">
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 </head>
 <body>
 
@@ -109,11 +110,21 @@
 <section id="admin" class="screen">
   <h2>⚙️ Painel Administrativo</h2>
 
-  <!-- JOGADOR -->
+  <!-- JOGADOR COM UPLOAD -->
   <div class="admin-box">
     <h3>➕ Adicionar Jogador</h3>
     <input id="nome" placeholder="Nome do jogador">
-    <input id="img" placeholder="URL da imagem">
+    
+    <div class="upload-area">
+      <label for="playerImage" class="upload-label">📸 Clique para selecionar a imagem</label>
+      <input type="file" id="playerImage" accept="image/*" style="display: none;">
+      <div id="imagePreview" class="image-preview" style="display: none;">
+        <img id="previewImg" alt="Pré-visualização">
+        <button type="button" class="remove-img" onclick="clearImagePreview()">✖</button>
+      </div>
+      <input type="hidden" id="imgUrl" value="">
+    </div>
+    
     <input id="ovr" placeholder="Overall (OVR)">
     <div class="grid-attrs">
       <input id="pac" placeholder="Ritmo">
@@ -210,7 +221,17 @@
     <div class="modal-body">
       <input type="hidden" id="editId">
       <input id="editNome" placeholder="Nome">
-      <input id="editImg" placeholder="URL da imagem">
+      
+      <div class="upload-area">
+        <label for="editPlayerImage" class="upload-label">📸 Trocar imagem</label>
+        <input type="file" id="editPlayerImage" accept="image/*" style="display: none;">
+        <div id="editPreview" class="image-preview" style="display: none;">
+          <img id="editPreviewImg" alt="Pré-visualização">
+          <button type="button" class="remove-img" onclick="clearEditPreview()">✖</button>
+        </div>
+        <input type="hidden" id="editImg" value="">
+      </div>
+      
       <input id="editOvr" placeholder="OVR" type="number">
       <div class="grid-attrs">
         <input id="editPac" placeholder="Ritmo">
@@ -278,28 +299,34 @@
 
 <!-- ================= MODAL DE LINEUP DA PARTIDA ================= -->
 <div id="editMatchLineupModal" class="modal" style="display: none;">
-  <div class="modal-content" style="max-width: 800px;">
+  <div class="modal-content" style="max-width: 900px;">
     <div class="modal-header">
       <h3>📋 Escalação da Partida</h3>
       <span class="modal-close" onclick="closeMatchLineupModal()">&times;</span>
     </div>
     <div class="modal-body">
       <input type="hidden" id="matchLineupId">
-      <div class="match-lineup-players">
-        <div class="lineup-section">
-          <h4>⚽ Titulares</h4>
-          <div id="matchLineupStarters" class="lineup-players-list"></div>
-          <button class="add-player-btn" onclick="addPlayerToMatchLineup('starter')">+ Adicionar Titular</button>
+      <div class="fifa-lineup-container">
+        <div class="fifa-formation">
+          <div class="formation-pitch">
+            <div class="pitch-title">4-3-3</div>
+            <div class="pitch-players" id="matchLineupStarters">
+              <!-- Titulares em estilo FIFA -->
+            </div>
+          </div>
         </div>
-        <div class="lineup-section">
+        <div class="fifa-subs">
           <h4>🔄 Reservas</h4>
-          <div id="matchLineupSubs" class="lineup-players-list"></div>
-          <button class="add-player-btn" onclick="addPlayerToMatchLineup('sub')">+ Adicionar Reserva</button>
+          <div class="subs-list" id="matchLineupSubs"></div>
         </div>
-        <div class="lineup-section">
-          <h4>📋 Técnico</h4>
-          <div id="matchLineupCoach" class="lineup-players-list"></div>
-          <button class="add-player-btn" onclick="addPlayerToMatchLineup('coach')">+ Adicionar Técnico</button>
+        <div class="fifa-coach">
+          <h4>📋 Comissão Técnica</h4>
+          <div class="coach-list" id="matchLineupCoach"></div>
+        </div>
+        <div class="lineup-actions">
+          <button class="add-player-btn" onclick="openAddPlayerModal('starter')">+ Adicionar Titular</button>
+          <button class="add-player-btn" onclick="openAddPlayerModal('sub')">+ Adicionar Reserva</button>
+          <button class="add-player-btn" onclick="openAddPlayerModal('coach')">+ Adicionar Técnico</button>
         </div>
       </div>
     </div>
@@ -319,9 +346,7 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="addPlayerType">
-      <select id="playerSelect" style="width:100%; padding:10px; margin:10px 0; border-radius:10px; background:#091d2a; color:white;">
-        <option value="">Selecione um jogador</option>
-      </select>
+      <div id="playersGridSelect" class="players-select-grid"></div>
       <input id="playerCustomName" placeholder="Ou digite um nome diferente" style="width:100%; padding:10px; border-radius:10px; background:#091d2a; color:white;">
     </div>
     <div class="modal-footer">
