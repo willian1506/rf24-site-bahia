@@ -17,7 +17,9 @@ const storage = firebase.storage();
 const ADMINS = [
   {user:"willian1506", pass:"willian321aha", nome:"Willian"},
   {user:"stormy", pass:"183524", nome:"Stormy"},
-  {user:"Mkz", pass:"12456453", nome:"Mkz"}
+  {user:"stormy", pass:"183524", nome:"Stormy"},
+  {user:"belli", pass:"7548790", nome:"Bellingham"},
+  {user:"teth", pass:"85231", nome:"Teth"}
 ];
 
 let isAdmin = localStorage.getItem("admin") === "true";
