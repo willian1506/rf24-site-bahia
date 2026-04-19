@@ -6,7 +6,7 @@
 }
 
 /* ================= FONTES ================= */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
 
 body {
   font-family: 'Poppins', Arial, sans-serif;
@@ -311,9 +311,13 @@ body {
 .match-date-time {
   font-size: 12px;
   opacity: 0.8;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
 }
 
-.match-edit-btn {
+.match-edit-btn, .match-lineup-btn {
   background: #ffc107;
   color: #000;
   border: none;
@@ -322,13 +326,21 @@ body {
   font-size: 10px;
   font-weight: bold;
   cursor: pointer;
-  margin-left: 8px;
   transition: 0.2s;
 }
 
-.match-edit-btn:hover {
+.match-edit-btn:hover, .match-lineup-btn:hover {
   background: #ff9800;
   transform: scale(1.05);
+}
+
+.match-lineup-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.match-lineup-btn:hover {
+  background: #45a049;
 }
 
 .match-teams-container {
@@ -466,7 +478,242 @@ body {
   font-style: italic;
 }
 
-/* ================= TABELA ================= */
+/* ================= LINEUP DA PARTIDA (ESTILO FIFA) ================= */
+.match-lineup-section {
+  margin: 15px;
+  border-top: 1px solid rgba(198, 40, 40, 0.3);
+  padding-top: 15px;
+}
+
+.match-lineup-header {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  color: #ffd966;
+}
+
+.match-lineup-header:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.match-lineup-content {
+  display: block;
+  padding: 15px;
+}
+
+.match-lineup-starters,
+.match-lineup-subs,
+.match-lineup-coach {
+  margin-bottom: 20px;
+}
+
+.match-lineup-starters h4,
+.match-lineup-subs h4,
+.match-lineup-coach h4 {
+  color: #ffd966;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.match-lineup-players {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lineup-player {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 30px;
+  padding: 4px 12px 4px 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.lineup-player img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.no-players {
+  font-size: 12px;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* ================= MODAL DE LINEUP ESTILO FIFA ================= */
+.fifa-lineup-container {
+  background: linear-gradient(135deg, #0a2030, #051015);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.fifa-formation {
+  background: url('https://www.transparenttextures.com/patterns/grass.png');
+  background-color: #1a5c2e;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.formation-pitch {
+  position: relative;
+  min-height: 400px;
+}
+
+.pitch-title {
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.pitch-players {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  position: relative;
+}
+
+.fifa-player-card {
+  background: linear-gradient(135deg, #1a2a3a, #0a1520);
+  border-radius: 15px;
+  padding: 10px;
+  text-align: center;
+  transition: 0.3s;
+  cursor: pointer;
+  border: 1px solid rgba(198, 40, 40, 0.3);
+  position: relative;
+}
+
+.fifa-player-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+  border-color: #c62828;
+}
+
+.fifa-player-img {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 8px;
+  border: 2px solid #ffd966;
+}
+
+.fifa-player-name {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.fifa-player-position {
+  font-size: 10px;
+  color: #ffd966;
+}
+
+.remove-player-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-player-btn:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
+
+.fifa-subs, .fifa-coach {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.fifa-subs h4, .fifa-coach h4 {
+  color: #ffd966;
+  margin-bottom: 15px;
+}
+
+.subs-list, .coach-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lineup-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+/* ================= SELEÇÃO DE JOGADORES ================= */
+.players-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  padding: 10px;
+}
+
+.player-select-card {
+  background: linear-gradient(145deg, #1a2a3a, #0a1520);
+  border-radius: 12px;
+  padding: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 1px solid rgba(198, 40, 40, 0.3);
+}
+
+.player-select-card:hover {
+  transform: scale(1.05);
+  border-color: #c62828;
+  background: #2a3a4a;
+}
+
+.player-select-card.selected {
+  border-color: #4caf50;
+  background: #1a3a2a;
+}
+
+.player-select-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 5px;
+}
+
+.player-select-name {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ================= TABELA MANUAL ================= */
 .table-card {
   display: flex;
   align-items: center;
@@ -515,6 +762,25 @@ body {
   background: #c62828;
   padding: 4px 10px;
   border-radius: 20px;
+}
+
+.table-delete-btn {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid #ff0000;
+  color: #ff0000;
+  padding: 4px 8px;
+  border-radius: 15px;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-left: 8px;
+}
+
+.table-delete-btn:hover {
+  background: #ff0000;
+  color: white;
+  transform: scale(1.05);
 }
 
 /* ================= ESTATÍSTICAS ================= */
@@ -876,6 +1142,67 @@ button:hover {
   background: #ff0000;
 }
 
+/* ================= UPLOAD DE IMAGEM ================= */
+.upload-area {
+  margin: 10px 0;
+  text-align: center;
+}
+
+.upload-label {
+  display: inline-block;
+  background: #c62828;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s;
+  width: 100%;
+  text-align: center;
+}
+
+.upload-label:hover {
+  background: #ff4444;
+  transform: scale(1.02);
+}
+
+.image-preview {
+  position: relative;
+  margin-top: 10px;
+  display: inline-block;
+}
+
+.image-preview img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 15px;
+  border: 2px solid #ffd966;
+}
+
+.remove-img {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #ff0000;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.remove-img:hover {
+  background: #cc0000;
+  transform: scale(1.1);
+}
+
 /* ================= LOGS ================= */
 .logs-box {
   max-height: 500px;
@@ -989,8 +1316,8 @@ button:hover {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(5px);
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(8px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1183,6 +1510,10 @@ button:hover {
     font-size: 13px;
     -webkit-line-clamp: 3;
   }
+  
+  .pitch-players {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 1200px) {
@@ -1264,174 +1595,4 @@ button:hover {
     padding: 4px 6px;
     font-size: 14px;
   }
-}
-
-/* ================= LINEUP DA PARTIDA ================= */
-.match-lineup-btn {
-  background: #4caf50;
-  color: white;
-  border: none;
-  padding: 4px 8px;
-  border-radius: 15px;
-  font-size: 10px;
-  font-weight: bold;
-  cursor: pointer;
-  margin-left: 5px;
-  transition: 0.2s;
-}
-
-.match-lineup-btn:hover {
-  background: #45a049;
-  transform: scale(1.05);
-}
-
-.match-lineup-section {
-  margin: 15px;
-  border-top: 1px solid rgba(198, 40, 40, 0.3);
-  padding-top: 15px;
-}
-
-.match-lineup-header {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: bold;
-  color: #ffd966;
-}
-
-.match-lineup-header:hover {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.match-lineup-content {
-  display: block;
-  padding: 15px;
-}
-
-.match-lineup-starters,
-.match-lineup-subs,
-.match-lineup-coach {
-  margin-bottom: 20px;
-}
-
-.match-lineup-starters h4,
-.match-lineup-subs h4,
-.match-lineup-coach h4 {
-  color: #ffd966;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.match-lineup-players {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.lineup-player {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 30px;
-  padding: 4px 12px 4px 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.lineup-player img {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.no-players {
-  font-size: 12px;
-  opacity: 0.6;
-  font-style: italic;
-}
-
-/* ================= MODAL DE LINEUP ================= */
-.match-lineup-players {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.lineup-section {
-  margin-bottom: 20px;
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 15px;
-}
-
-.lineup-section h4 {
-  color: #ffd966;
-  margin-bottom: 15px;
-  font-size: 16px;
-}
-
-.lineup-players-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 10px;
-  min-height: 60px;
-}
-
-.lineup-player-item {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 30px;
-  padding: 4px 12px 4px 6px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  position: relative;
-}
-
-.lineup-player-img img {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.lineup-player-name {
-  max-width: 120px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.lineup-remove-btn {
-  background: none;
-  border: none;
-  color: #ff0000;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 0 5px;
-  margin: 0;
-}
-
-.lineup-remove-btn:hover {
-  transform: scale(1.2);
-  box-shadow: none;
-}
-
-.add-player-btn {
-  background: #4caf50;
-  padding: 6px 12px;
-  font-size: 12px;
-  margin-top: 5px;
-}
-
-.add-player-btn:hover {
-  background: #45a049;
 }
